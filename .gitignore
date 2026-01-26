@@ -17,6 +17,23 @@ migrate_working_dir/
 .env.local
 .env.*.local
 
+# Firebase/Google Services
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase-debug.log
+
+# Supabase
+supabase/.env
+supabase/.env.local
+
+# API Keys and Secrets
+*.key
+*.pem
+*.p12
+*.keystore
+!debug.keystore
+secrets.json
+
 # IntelliJ related
 *.iml
 *.ipr
