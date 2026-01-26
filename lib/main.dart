@@ -10,11 +10,15 @@ import 'services/theme_service.dart';
 import 'services/transaction_service.dart';
 import 'services/budget_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/goal_service.dart';
+import 'services/insight_service.dart';
+import 'services/ai_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/onboarding_provider.dart';
+import 'providers/ai_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -23,6 +27,8 @@ import 'screens/onboarding/onboarding_categories_screen.dart';
 import 'screens/onboarding/onboarding_benefits_screen.dart';
 import 'screens/onboarding/onboarding_notifications_screen.dart';
 import 'screens/onboarding/onboarding_weekly_review_screen.dart';
+import 'screens/notification_test_screen.dart';
+import 'screens/home/home_screen.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -47,6 +53,18 @@ void main() async {
   final transactionService = TransactionService(storageService);
   final budgetService = BudgetService(storageService);
   final onboardingService = OnboardingService(storageService);
+  final goalService = GoalService(storageService, transactionService);
+  final insightService = InsightService(transactionService);
+  
+  // Get AI API key from environment
+  final aiApiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+  final aiService = AIService(
+    transactionService: transactionService,
+    budgetService: budgetService,
+    goalService: goalService,
+    insightService: insightService,
+    apiKey: aiApiKey,
+  );
   
   runApp(MyApp(
     authService: authService,
@@ -54,6 +72,7 @@ void main() async {
     transactionService: transactionService,
     budgetService: budgetService,
     onboardingService: onboardingService,
+    aiService: aiService,
   ));
 }
 
@@ -63,6 +82,7 @@ class MyApp extends StatelessWidget {
   final TransactionService transactionService;
   final BudgetService budgetService;
   final OnboardingService onboardingService;
+  final AIService aiService;
 
   const MyApp({
     super.key,
@@ -71,6 +91,7 @@ class MyApp extends StatelessWidget {
     required this.transactionService,
     required this.budgetService,
     required this.onboardingService,
+    required this.aiService,
   });
 
   @override
@@ -108,6 +129,16 @@ class MyApp extends StatelessWidget {
           update: (_, auth, transaction, previous) {
             final provider = previous ?? BudgetProvider(budgetService);
             provider.updateAuth(auth.user?.id, transaction);
+            return provider;
+          },
+        ),
+        
+        // AIProvider depends on AuthProvider
+        ChangeNotifierProxyProvider<AuthProvider, AIProvider>(
+          create: (_) => AIProvider(aiService),
+          update: (_, auth, previous) {
+            final provider = previous ?? AIProvider(aiService);
+            provider.updateUserId(auth.user?.id);
             return provider;
           },
         ),
@@ -168,11 +199,13 @@ class _AppRootState extends State<AppRoot> {
             '/onboarding/benefits': (context) => const OnboardingBenefitsScreen(),
             '/onboarding/notifications': (context) => const OnboardingNotificationsScreen(),
             '/onboarding/weekly-review': (context) => const OnboardingWeeklyReviewScreen(),
-            '/dashboard': (context) => const MyHomePage(title: 'Dashboard'),
+            '/dashboard': (context) => const HomeScreen(), // Updated to use HomeScreen
+            '/home': (context) => const HomeScreen(),
             '/transactions': (context) => const MyHomePage(title: 'Transactions'),
             '/budget': (context) => const MyHomePage(title: 'Budget'),
             '/analytics': (context) => const MyHomePage(title: 'Analytics'),
             '/settings': (context) => const MyHomePage(title: 'Settings'),
+            '/notification-test': (context) => const NotificationTestScreen(),
           },
         );
       },
@@ -212,6 +245,19 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/notification-test');
+              },
+              icon: const Icon(Icons.notifications_active),
+              label: const Text('Test Notifications'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              ),
             ),
           ],
         ),

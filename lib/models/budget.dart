@@ -5,6 +5,7 @@ class Budget {
   final double amount;
   final int year;
   final int month;
+  final bool isActive;
 
   Budget({
     required this.id,
@@ -12,6 +13,7 @@ class Budget {
     required this.amount,
     required this.year,
     required this.month,
+    this.isActive = true,
   });
 
   /// Convert Budget instance to JSON map
@@ -22,6 +24,7 @@ class Budget {
       'amount': amount,
       'year': year,
       'month': month,
+      'isActive': isActive,
     };
   }
 
@@ -33,6 +36,7 @@ class Budget {
       amount: (json['amount'] as num).toDouble(),
       year: json['year'] as int,
       month: json['month'] as int,
+      isActive: json['isActive'] as bool? ?? true,
     );
   }
 
@@ -44,7 +48,8 @@ class Budget {
         other.userId == userId &&
         other.amount == amount &&
         other.year == year &&
-        other.month == month;
+        other.month == month &&
+        other.isActive == isActive;
   }
 
   @override
@@ -53,12 +58,13 @@ class Budget {
         userId.hashCode ^
         amount.hashCode ^
         year.hashCode ^
-        month.hashCode;
+        month.hashCode ^
+        isActive.hashCode;
   }
 
   @override
   String toString() {
     return 'Budget(id: $id, userId: $userId, amount: $amount, '
-        'year: $year, month: $month)';
+        'year: $year, month: $month, isActive: $isActive)';
   }
 }

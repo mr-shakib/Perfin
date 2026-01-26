@@ -24,6 +24,8 @@ class Transaction {
   final DateTime date;
   final String? notes;
   final String userId;
+  final bool isSynced;
+  final String? linkedGoalId;
 
   Transaction({
     required this.id,
@@ -33,6 +35,8 @@ class Transaction {
     required this.date,
     this.notes,
     required this.userId,
+    this.isSynced = true,
+    this.linkedGoalId,
   });
 
   /// Validate the transaction
@@ -66,6 +70,8 @@ class Transaction {
       'date': date.toIso8601String(),
       'notes': notes,
       'userId': userId,
+      'isSynced': isSynced,
+      'linkedGoalId': linkedGoalId,
     };
   }
 
@@ -79,6 +85,8 @@ class Transaction {
       date: DateTime.parse(json['date'] as String),
       notes: json['notes'] as String?,
       userId: json['userId'] as String,
+      isSynced: json['isSynced'] as bool? ?? true,
+      linkedGoalId: json['linkedGoalId'] as String?,
     );
   }
 
@@ -92,7 +100,9 @@ class Transaction {
         other.type == type &&
         other.date == date &&
         other.notes == notes &&
-        other.userId == userId;
+        other.userId == userId &&
+        other.isSynced == isSynced &&
+        other.linkedGoalId == linkedGoalId;
   }
 
   @override
@@ -103,12 +113,15 @@ class Transaction {
         type.hashCode ^
         date.hashCode ^
         notes.hashCode ^
-        userId.hashCode;
+        userId.hashCode ^
+        isSynced.hashCode ^
+        linkedGoalId.hashCode;
   }
 
   @override
   String toString() {
     return 'Transaction(id: $id, amount: $amount, category: $category, '
-        'type: $type, date: $date, notes: $notes, userId: $userId)';
+        'type: $type, date: $date, notes: $notes, userId: $userId, '
+        'isSynced: $isSynced, linkedGoalId: $linkedGoalId)';
   }
 }

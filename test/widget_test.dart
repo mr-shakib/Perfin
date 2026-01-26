@@ -14,6 +14,7 @@ import 'package:perfin/services/auth_service.dart';
 import 'package:perfin/services/theme_service.dart';
 import 'package:perfin/services/transaction_service.dart';
 import 'package:perfin/services/budget_service.dart';
+import 'package:perfin/services/onboarding_service.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
@@ -25,6 +26,7 @@ void main() {
     final themeService = ThemeService(storageService);
     final transactionService = TransactionService(storageService);
     final budgetService = BudgetService(storageService);
+    final onboardingService = OnboardingService(storageService);
     
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp(
@@ -32,6 +34,7 @@ void main() {
       themeService: themeService,
       transactionService: transactionService,
       budgetService: budgetService,
+      onboardingService: onboardingService,
     ));
 
     // Verify that our counter starts at 0.

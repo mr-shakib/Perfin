@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../../providers/onboarding_provider.dart';
+import '../../services/notification_helper.dart';
 
 // Color constants
 const Color _kScreenBackground = Color(0xFFFFF8DB);
@@ -24,6 +25,24 @@ class _OnboardingNotificationsScreenState extends State<OnboardingNotificationsS
   bool _dailyDigest = true;
   bool _billReminders = true;
   bool _budgetAlerts = true;
+  bool _permissionRequested = false;
+  final NotificationHelper _notificationHelper = NotificationHelper();
+
+  Future<void> _requestNotificationPermission() async {
+    if (_permissionRequested) return;
+    
+    try {
+      await _notificationHelper.initialize();
+      setState(() {
+        _permissionRequested = true;
+      });
+    } catch (e) {
+      // Permission denied or error - user can still continue
+      setState(() {
+        _permissionRequested = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,12 +227,16 @@ class _OnboardingNotificationsScreenState extends State<OnboardingNotificationsS
       height: 56,
       child: ElevatedButton(
         onPressed: () async {
+          // Ensure notification permission is requested
+          await _requestNotificationPermission();
+          
           // Save the notification preferences
           await context.read<OnboardingProvider>().setNotificationPreferences(
             dailyDigest: _dailyDigest,
             billReminders: _billReminders,
             budgetAlerts: _budgetAlerts,
           );
+          
           // Navigate to next screen
           if (mounted) {
             Navigator.pushNamed(context, '/onboarding/weekly-review');
