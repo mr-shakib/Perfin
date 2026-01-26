@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../../providers/onboarding_provider.dart';
 
 // Color constants
 const Color _kScreenBackground = Color(0xFFFFF8DB);
@@ -257,8 +259,16 @@ class _OnboardingWeeklyReviewScreenState extends State<OnboardingWeeklyReviewScr
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, '/login');
+        onPressed: () async {
+          final navigator = Navigator.of(context);
+          final onboardingProvider = context.read<OnboardingProvider>();
+          
+          // Save the weekly review day
+          await onboardingProvider.setWeeklyReviewDay(_selectedDay);
+          // Mark onboarding as completed
+          await onboardingProvider.completeOnboarding();
+          // Navigate to login
+          navigator.pushReplacementNamed('/login');
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _kButtonNavy,

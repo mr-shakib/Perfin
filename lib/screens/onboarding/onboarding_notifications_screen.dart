@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+import '../../providers/onboarding_provider.dart';
 
 // Color constants
 const Color _kScreenBackground = Color(0xFFFFF8DB);
@@ -192,7 +194,7 @@ class _OnboardingNotificationsScreenState extends State<OnboardingNotificationsS
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: _kAccentOrange, // Orange thumb
+            activeThumbColor: _kAccentOrange, // Orange thumb
             activeTrackColor: _kButtonNavy, // Navy track background
           ),
         ],
@@ -205,8 +207,17 @@ class _OnboardingNotificationsScreenState extends State<OnboardingNotificationsS
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/onboarding/weekly-review');
+        onPressed: () async {
+          // Save the notification preferences
+          await context.read<OnboardingProvider>().setNotificationPreferences(
+            dailyDigest: _dailyDigest,
+            billReminders: _billReminders,
+            budgetAlerts: _budgetAlerts,
+          );
+          // Navigate to next screen
+          if (mounted) {
+            Navigator.pushNamed(context, '/onboarding/weekly-review');
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _kButtonNavy,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../../providers/onboarding_provider.dart';
 
 // Color constants
 const Color _kScreenBackground = Color(0xFFFFF8DB);
@@ -225,8 +227,13 @@ class _OnboardingGoalScreenState extends State<OnboardingGoalScreen> {
       height: 56,
       child: ElevatedButton(
         onPressed: _selectedGoal != null
-            ? () {
-                Navigator.pushNamed(context, '/onboarding/categories');
+            ? () async {
+                // Save the selection
+                await context.read<OnboardingProvider>().setSavingsGoal(_selectedGoal!);
+                // Navigate to next screen
+                if (mounted) {
+                  Navigator.pushNamed(context, '/onboarding/categories');
+                }
               }
             : null,
         style: ElevatedButton.styleFrom(

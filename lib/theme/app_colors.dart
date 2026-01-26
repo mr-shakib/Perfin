@@ -1,63 +1,75 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary Swatch
+  // Primary Swatch - Navy
   static const MaterialColor primarySwatch = MaterialColor(
-    0xFF4A69BD,
+    0xFF303E50,
     <int, Color>{
-      50: Color(0xFFEEF2FC),
-      100: Color(0xFFD6DFF8),
-      200: Color(0xFFB3C0F0),
-      300: Color(0xFF8FA0E3),
-      400: Color(0xFF6B84D0),
-      500: Color(0xFF4A69BD),
-      600: Color(0xFF3F5982),
-      700: Color(0xFF2D4263),
-      800: Color(0xFF1B2B44),
-      900: Color(0xFF0A1628),
+      50: Color(0xFFF8F9FA),
+      100: Color(0xFFE5E7EB),
+      200: Color(0xFFD1D5DB),
+      300: Color(0xFF9CA3AF),
+      400: Color(0xFF6B7280),
+      500: Color(0xFF303E50),
+      600: Color(0xFF2D3748),
+      700: Color(0xFF1F2937),
+      800: Color(0xFF111827),
+      900: Color(0xFF0A0F1A),
     },
   );
 
-  // Secondary Swatch
+  // Secondary Swatch - Orange
   static const MaterialColor secondarySwatch = MaterialColor(
-    0xFF7C3AED,
+    0xFFFF7A4A,
     <int, Color>{
-      50: Color(0xFFF5EBFE),
-      100: Color(0xFFE9D5FD),
-      200: Color(0xFFD4A7FA),
-      300: Color(0xFFB883F7),
-      400: Color(0xFF9D5FF2),
-      500: Color(0xFF7C3AED),
-      600: Color(0xFF664393),
-      700: Color(0xFF4A2C6D),
-      800: Color(0xFF2E1A47),
-      900: Color(0xFF1A0B2E),
+      50: Color(0xFFFFF5F0),
+      100: Color(0xFFFFE8DC),
+      200: Color(0xFFFFD1B9),
+      300: Color(0xFFFFB896),
+      400: Color(0xFFFF9A6A),
+      500: Color(0xFFFF7A4A),
+      600: Color(0xFFE65A2A),
+      700: Color(0xFFCC4A1A),
+      800: Color(0xFFB33A0A),
+      900: Color(0xFF992A00),
     },
   );
 
-  // Core Colors
-  static const Color primary = Color(0xFF4A69BD);
-  static const Color primaryDark = Color(0xFF2D4263);
-  static const Color primaryLight = Color(0xFF8FA0E3);
+  // Core Colors - Navy (Primary)
+  static const Color primary = Color(0xFF303E50);
+  static const Color primaryDark = Color(0xFF1F2937);
+  static const Color primaryLight = Color(0xFF4A5568);
 
-  static const Color secondary = Color(0xFF7C3AED);
-  static const Color secondaryDark = Color(0xFF4A2C6D);
-  static const Color secondaryLight = Color(0xFFB883F7);
+  // Orange (Secondary/Accent)
+  static const Color secondary = Color(0xFFFF7A4A);
+  static const Color secondaryDark = Color(0xFFE65A2A);
+  static const Color secondaryLight = Color(0xFFFF9A6A);
 
-  static const Color accent = Color(0xFFF59E0B);
+  static const Color accent = Color(0xFFFF7A4A);
+  static const Color accentDark = Color(0xFFE65A2A);
+  static const Color accentLight = Color(0xFFFF9A6A);
+
+  // Cream/Warm Backgrounds
+  static const Color creamBackground = Color(0xFFFFF8DB);
+  static const Color creamCard = Color(0xFFFFFCE2);
+  static const Color creamLight = Color(0xFFFFFDF0);
 
   // Semantic Colors
   static const Color success = Color(0xFF10B981);
   static const Color successDark = Color(0xFF047857);
   static const Color successLight = Color(0xFF34D399);
 
-  static const Color warning = Color(0xFFF97316);
-  static const Color warningDark = Color(0xFFC2410C);
-  static const Color warningLight = Color(0xFFFB923C);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color warningDark = Color(0xFFD97706);
+  static const Color warningLight = Color(0xFFFBBF24);
 
   static const Color error = Color(0xFFEF4444);
-  static const Color errorDark = Color(0xFFB91C1C);
+  static const Color errorDark = Color(0xFFDC2626);
   static const Color errorLight = Color(0xFFF87171);
+
+  static const Color info = Color(0xFF3B82F6);
+  static const Color infoDark = Color(0xFF2563EB);
+  static const Color infoLight = Color(0xFF60A5FA);
 
   // Neutrals - Light Mode
   static const Color neutral50 = Color(0xFFFAFAFA);
@@ -88,7 +100,19 @@ class AppColors {
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF4A69BD), Color(0xFF7C3AED)],
+    colors: [Color(0xFF303E50), Color(0xFF4A5568)],
+  );
+
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF7A4A), Color(0xFFFF9A6A)],
+  );
+
+  static const LinearGradient warmGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF7A4A), Color(0xFFF59E0B)],
   );
 
   static const LinearGradient successGradient = LinearGradient(
@@ -97,21 +121,15 @@ class AppColors {
     colors: [Color(0xFF10B981), Color(0xFF34D399)],
   );
 
-  static const LinearGradient aiGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF7C3AED), Color(0xFFB883F7)],
-  );
-
   static const LinearGradient backgroundGradientLight = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFFFFF), Color(0xFFEEF2FC)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFFFF8DB)],
   );
 
   static const LinearGradient backgroundGradientDark = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF0A0A0A), Color(0xFF0A1628)],
+    colors: [Color(0xFF0A0A0A), Color(0xFF1A1A2E)],
   );
 }

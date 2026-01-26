@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../../providers/onboarding_provider.dart';
 
 // Color constants
 const Color _kScreenBackground = Color(0xFFFFF8DB);
@@ -176,8 +178,13 @@ class _OnboardingCategoriesScreenState extends State<OnboardingCategoriesScreen>
       height: 56,
       child: ElevatedButton(
         onPressed: _selectedCategories.isNotEmpty
-            ? () {
-                Navigator.pushNamed(context, '/onboarding/benefits');
+            ? () async {
+                // Save the selections
+                await context.read<OnboardingProvider>().setCategories(_selectedCategories.toList());
+                // Navigate to next screen
+                if (mounted) {
+                  Navigator.pushNamed(context, '/onboarding/benefits');
+                }
               }
             : null,
         style: ElevatedButton.styleFrom(

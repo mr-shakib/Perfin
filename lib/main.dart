@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme/app_theme.dart';
+import 'config/supabase_config.dart';
 import 'services/hive_storage_service.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/transaction_service.dart';
 import 'services/budget_service.dart';
+import 'services/onboarding_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
+import 'providers/onboarding_provider.dart';
 import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
 import 'screens/onboarding/onboarding_goal_screen.dart';
 import 'screens/onboarding/onboarding_categories_screen.dart';
 import 'screens/onboarding/onboarding_benefits_screen.dart';
@@ -22,6 +28,15 @@ void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+  
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+  
   // Initialize storage service
   final storageService = HiveStorageService();
   await storageService.init();
@@ -31,12 +46,14 @@ void main() async {
   final themeService = ThemeService(storageService);
   final transactionService = TransactionService(storageService);
   final budgetService = BudgetService(storageService);
+  final onboardingService = OnboardingService(storageService);
   
   runApp(MyApp(
     authService: authService,
     themeService: themeService,
     transactionService: transactionService,
     budgetService: budgetService,
+    onboardingService: onboardingService,
   ));
 }
 
@@ -45,6 +62,7 @@ class MyApp extends StatelessWidget {
   final ThemeService themeService;
   final TransactionService transactionService;
   final BudgetService budgetService;
+  final OnboardingService onboardingService;
 
   const MyApp({
     super.key,
@@ -52,6 +70,7 @@ class MyApp extends StatelessWidget {
     required this.themeService,
     required this.transactionService,
     required this.budgetService,
+    required this.onboardingService,
   });
 
   @override
@@ -60,12 +79,17 @@ class MyApp extends StatelessWidget {
       providers: [
         // ThemeProvider at root - independent of other providers
         ChangeNotifierProvider(
-          create: (_) => ThemeProvider(themeService)..loadTheme(),
+          create: (_) => ThemeProvider(themeService),
+        ),
+        
+        // OnboardingProvider - independent of other providers
+        ChangeNotifierProvider(
+          create: (_) => OnboardingProvider(onboardingService),
         ),
         
         // AuthProvider - independent of other providers
         ChangeNotifierProvider(
-          create: (_) => AuthProvider(authService)..restoreSession(),
+          create: (_) => AuthProvider(authService),
         ),
         
         // TransactionProvider depends on AuthProvider
@@ -94,8 +118,26 @@ class MyApp extends StatelessWidget {
 }
 
 /// Root widget that configures MaterialApp with theme and routing
-class AppRoot extends StatelessWidget {
+class AppRoot extends StatefulWidget {
   const AppRoot({super.key});
+
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize providers after first frame to avoid build-time setState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ThemeProvider>().loadTheme();
+        context.read<OnboardingProvider>().loadPreferences();
+        context.read<AuthProvider>().restoreSession();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,13 +161,14 @@ class AppRoot extends StatelessWidget {
           routes: {
             '/': (context) => const MyHomePage(title: 'PerFin'),
             '/splash': (context) => const SplashScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
             '/onboarding/goal': (context) => const OnboardingGoalScreen(),
             '/onboarding/categories': (context) => const OnboardingCategoriesScreen(),
             '/onboarding/benefits': (context) => const OnboardingBenefitsScreen(),
             '/onboarding/notifications': (context) => const OnboardingNotificationsScreen(),
             '/onboarding/weekly-review': (context) => const OnboardingWeeklyReviewScreen(),
             '/dashboard': (context) => const MyHomePage(title: 'Dashboard'),
-            '/login': (context) => const LoginScreen(),
             '/transactions': (context) => const MyHomePage(title: 'Transactions'),
             '/budget': (context) => const MyHomePage(title: 'Budget'),
             '/analytics': (context) => const MyHomePage(title: 'Analytics'),

@@ -65,6 +65,40 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Register a new user with name, email and password
+  /// Sets state to loading during registration
+  /// Sets state to authenticated on success
+  /// Sets state to error on failure with error message
+  Future<void> signup(String name, String email, String password) async {
+    _state = AuthState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Sign up with Supabase
+      final user = await _authService.signUp(email, password, name);
+      
+      // Save session to local storage
+      await _authService.saveSession(user);
+      
+      // Update state
+      _user = user;
+      _state = AuthState.authenticated;
+      _errorMessage = null;
+      notifyListeners();
+    } on AuthenticationException catch (e) {
+      _user = null;
+      _state = AuthState.error;
+      _errorMessage = e.message;
+      notifyListeners();
+    } catch (e) {
+      _user = null;
+      _state = AuthState.error;
+      _errorMessage = 'An unexpected error occurred during signup';
+      notifyListeners();
+    }
+  }
+
   /// Log out the current user
   /// Clears session and resets state to idle
   Future<void> logout() async {
@@ -72,7 +106,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Clear session
+      // Sign out from Supabase
+      await _authService.signOut();
+      
+      // Clear local session
       await _authService.clearSession();
       
       // Reset state
@@ -81,7 +118,7 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     } catch (e) {
-      // Even if clearing session fails, we should still log out locally
+      // Even if sign out fails, we should still log out locally
       _user = null;
       _state = AuthState.idle;
       _errorMessage = null;

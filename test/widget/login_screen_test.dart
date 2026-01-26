@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:perfin/screens/login_screen.dart';
+import 'package:perfin/screens/auth/login_screen.dart';
 import 'package:perfin/providers/auth_provider.dart';
 import 'package:perfin/services/auth_service.dart';
 import 'package:perfin/services/hive_storage_service.dart';

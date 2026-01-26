@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/onboarding_provider.dart';
 
 // Color constants for splash/onboarding screen
 const Color _kBackgroundOrange = Color(0xFFFF7A4A);
@@ -85,34 +86,44 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _initializeApp() async {
-    final authProvider = context.read<AuthProvider>();
-    
     // Start logo animation immediately
     _animationController.forward();
     
-    // Restore session while logo is animating
-    await authProvider.restoreSession();
+    // Wait a bit for providers to initialize
+    await Future.delayed(const Duration(milliseconds: 500));
     
-    // Wait for logo animation to complete (0.3 * 2500ms = 750ms)
-    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
+    
+    final authProvider = context.read<AuthProvider>();
+    final onboardingProvider = context.read<OnboardingProvider>();
+    
+    // Ensure providers are loaded
+    await Future.wait([
+      authProvider.restoreSession(),
+      onboardingProvider.loadPreferences(),
+    ]);
+    
+    // Wait for logo animation to complete
+    await Future.delayed(const Duration(milliseconds: 500));
     
     if (!mounted) return;
 
-    // Check if user needs onboarding
-    final hasSeenOnboarding = authProvider.user != null;
+    // Check authentication and onboarding status
+    final isAuthenticated = authProvider.isAuthenticated;
+    final hasCompletedOnboarding = onboardingProvider.isCompleted;
 
-    if (authProvider.isAuthenticated) {
-      // User is authenticated, go to dashboard after a brief moment
+    if (isAuthenticated) {
+      // User is authenticated, go to dashboard
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/dashboard');
-    } else if (!hasSeenOnboarding) {
-      // Show onboarding content
+    } else if (!hasCompletedOnboarding) {
+      // User hasn't completed onboarding, show onboarding content
       setState(() {
         _showOnboarding = true;
       });
     } else {
-      // Returning user, go to login
+      // User completed onboarding but not logged in, go to login
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
