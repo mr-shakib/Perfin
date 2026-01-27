@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/budget_provider.dart';
+import '../../theme/app_colors.dart';
 
 /// Manage Budget Screen
 /// Allows users to set monthly budget and category budgets
@@ -113,9 +114,9 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.creamLight,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Color(0xFF1A1A1A)),
@@ -252,7 +253,7 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
         prefixText: '\$ ',
         hintText: hint,
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
+        fillColor: AppColors.creamLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

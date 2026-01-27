@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../transactions/add_transaction_screen.dart';
 import '../../budget/manage_budget_screen.dart';
 import '../../../screens/main_dashboard.dart';
+import '../../../theme/app_colors.dart';
 
 /// Quick Action Buttons - Clean Minimal Design
 /// Requirements: 1.9
@@ -34,7 +35,7 @@ class QuickActionButtons extends StatelessWidget {
             context,
             'Stats',
             Icons.bar_chart,
-            const Color(0xFFF5F5F5),
+            AppColors.creamCard,
             () {
               // Switch to Insights tab (index 1)
               MainDashboard.switchTab(context, 1);
@@ -47,7 +48,7 @@ class QuickActionButtons extends StatelessWidget {
             context,
             'Budget',
             Icons.pie_chart_outline,
-            const Color(0xFFF5F5F5),
+            AppColors.creamCard,
             () {
               Navigator.push(
                 context,
@@ -71,31 +72,40 @@ class QuickActionButtons extends StatelessWidget {
   ) {
     final isDark = bgColor == const Color(0xFF1A1A1A);
     
-    return Material(
-      color: bgColor,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isDark ? Colors.white : const Color(0xFF1A1A1A),
-                size: 28,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
+        border: Border.all(
+          color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE5E5E5),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
                   color: isDark ? Colors.white : const Color(0xFF1A1A1A),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  size: 28,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

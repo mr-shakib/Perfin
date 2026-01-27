@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../models/user.dart' as app_models;
+import '../../../theme/app_colors.dart';
 
 /// Edit profile form - Clean Minimal Design
 class EditProfileForm extends StatefulWidget {
@@ -68,7 +69,7 @@ class _EditProfileFormState extends State<EditProfileForm> {
               decoration: InputDecoration(
                 labelText: 'Name',
                 filled: true,
-                fillColor: const Color(0xFFFAFAFA),
+                fillColor: AppColors.creamLight,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
@@ -118,7 +119,7 @@ class _EditProfileFormState extends State<EditProfileForm> {
               decoration: InputDecoration(
                 labelText: 'Email',
                 filled: true,
-                fillColor: const Color(0xFFFAFAFA),
+                fillColor: AppColors.creamLight,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/ai_provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../theme/app_colors.dart';
 
 /// AI Summary Card - Clean Minimal Design
 /// Requirements: 2.1-2.8
@@ -29,8 +30,12 @@ class AISummaryCard extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: AppColors.creamLight,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFE5E5E5),
+              width: 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,8 +159,12 @@ class AISummaryCard extends StatelessWidget {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE5E5E5),
+          width: 1,
+        ),
       ),
       child: const Center(
         child: CircularProgressIndicator(
@@ -169,8 +178,12 @@ class AISummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE5E5E5),
+          width: 1,
+        ),
       ),
       child: const Row(
         children: [
@@ -198,8 +211,12 @@ class AISummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE5E5E5),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [

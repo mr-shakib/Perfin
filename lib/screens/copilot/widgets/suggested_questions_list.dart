@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
 
 /// Display suggested questions for first-time users
 /// Requirements: 6.10
@@ -131,7 +132,7 @@ class SuggestedQuestionsList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
+          color: AppColors.creamLight,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),

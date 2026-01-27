@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
 
 /// Multi-line text input with send button
 /// Requirements: 6.2
@@ -51,7 +52,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.creamLight,
         border: Border(
           top: BorderSide(
             color: const Color(0xFFE5E5E5),
@@ -73,7 +74,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                   maxHeight: 120,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
+                  color: AppColors.creamLight,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: const Color(0xFFE5E5E5),
@@ -124,7 +125,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                 decoration: BoxDecoration(
                   color: _hasText 
                       ? const Color(0xFF1A1A1A) 
-                      : const Color(0xFFFAFAFA),
+                      : AppColors.creamLight,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: const Color(0xFFE5E5E5),

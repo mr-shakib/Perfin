@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/goal_feasibility_analysis.dart';
 import '../../../models/spending_reduction.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying AI feasibility analysis for a goal
 /// Requirements: 10.1-10.10
@@ -87,7 +88,7 @@ class AIFeasibilityCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: AppColors.creamLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -210,7 +211,7 @@ class AIFeasibilityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -247,7 +248,7 @@ class AIFeasibilityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

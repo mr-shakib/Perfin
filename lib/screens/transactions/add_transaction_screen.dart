@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/transaction.dart';
+import '../../theme/app_colors.dart';
 
 /// Add Transaction Screen
 /// Allows users to create new income or expense transactions
@@ -121,9 +122,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.creamLight,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Color(0xFF1A1A1A)),
@@ -146,7 +147,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             // Type selector
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: AppColors.creamLight,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -159,6 +160,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       const Color(0xFFFF3B30),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildTypeButton(
                       'Income',
@@ -232,7 +234,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       _selectedCategory = category;
                     });
                   },
-                  backgroundColor: const Color(0xFFF5F5F5),
+                  backgroundColor: AppColors.creamLight,
                   selectedColor: const Color(0xFF1A1A1A),
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
@@ -259,7 +261,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               decoration: InputDecoration(
                 hintText: 'Add a note...',
                 filled: true,
-                fillColor: const Color(0xFFF5F5F5),
+                fillColor: AppColors.creamLight,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -286,7 +288,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
+                  color: AppColors.creamLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -364,6 +366,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF1A1A1A) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0),
+            width: 1.5,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

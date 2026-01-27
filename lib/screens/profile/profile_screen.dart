@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../theme/app_colors.dart';
 import 'widgets/user_info_section.dart';
 import 'widgets/settings_list.dart';
 
@@ -17,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
     final user = authProvider.user;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       body: user == null
           ? const Center(
               child: Text('Please log in to view your profile'),
@@ -27,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Simple header
+                // Header that scrolls away
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,

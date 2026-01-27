@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/goal.dart';
 import '../goal_detail_screen.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying individual goal with progress
 /// Requirements: 9.1, 9.12
@@ -32,7 +33,7 @@ class GoalCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isCompleted ? const Color(0xFFF5F5F5) : Colors.white,
+          color: isCompleted ? AppColors.creamCard : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),
@@ -214,7 +215,7 @@ class GoalCard extends StatelessWidget {
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

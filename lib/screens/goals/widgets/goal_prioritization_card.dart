@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/goal_prioritization.dart';
 import '../../../models/goal.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying AI goal prioritization when multiple goals exist
 /// Requirements: 10.9-10.10
@@ -256,7 +257,7 @@ class GoalPrioritizationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

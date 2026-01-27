@@ -208,7 +208,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: AppColors.creamBackground,
+      backgroundColor: AppColors.creamLight,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),

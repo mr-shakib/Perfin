@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../models/trend_data_point.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying spending trend over time as a line chart
 /// Requirements: 3.7
@@ -213,7 +214,7 @@ class SpendingTrendChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

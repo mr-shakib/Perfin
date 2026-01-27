@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/ai_provider.dart';
 import '../../models/conversation.dart';
+import '../../theme/app_colors.dart';
 
 /// Screen showing list of all conversations
 class ConversationHistoryScreen extends StatelessWidget {
@@ -11,7 +12,7 @@ class ConversationHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -124,7 +125,7 @@ class ConversationHistoryScreen extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF1A1A1A) : const Color(0xFFFAFAFA),
+          color: isActive ? const Color(0xFF1A1A1A) : AppColors.creamCard,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive ? const Color(0xFF1A1A1A) : const Color(0xFFE5E5E5),
@@ -283,7 +284,7 @@ class ConversationHistoryScreen extends StatelessWidget {
             hintText: 'Enter new title',
             hintStyle: const TextStyle(color: Color(0xFF999999)),
             filled: true,
-            fillColor: const Color(0xFFFAFAFA),
+            fillColor: AppColors.creamLight,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE5E5E5)),

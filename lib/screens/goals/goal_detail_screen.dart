@@ -9,6 +9,7 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/transaction_provider.dart' show LoadingState;
 import '../../models/goal.dart';
 import '../../models/transaction.dart';
+import '../../theme/app_colors.dart';
 import 'widgets/goal_progress_chart.dart';
 import 'widgets/ai_feasibility_card.dart';
 import 'widgets/goal_prioritization_card.dart';
@@ -349,9 +350,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.creamLight,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
@@ -648,7 +649,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

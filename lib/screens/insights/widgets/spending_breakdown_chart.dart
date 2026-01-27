@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying spending breakdown by category as a pie chart
 /// Requirements: 3.1, 3.5-3.6
@@ -204,7 +205,7 @@ class _SpendingBreakdownChartState extends State<SpendingBreakdownChart> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

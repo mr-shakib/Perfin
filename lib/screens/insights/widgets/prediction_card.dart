@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/spending_prediction.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying AI-powered spending prediction
 /// Requirements: 4.1-4.6
@@ -92,7 +93,7 @@ class PredictionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: AppColors.creamLight,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -211,7 +212,7 @@ class PredictionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
@@ -239,7 +240,7 @@ class PredictionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

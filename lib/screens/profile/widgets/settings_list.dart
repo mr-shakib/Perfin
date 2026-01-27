@@ -6,6 +6,7 @@ import '../category_management_screen.dart';
 import '../privacy_settings_screen.dart';
 import 'data_export_dialog.dart';
 import 'account_deletion_dialog.dart';
+import '../../../theme/app_colors.dart';
 
 /// Settings list - Clean Minimal Design
 class SettingsList extends StatelessWidget {
@@ -134,7 +135,7 @@ class SettingsList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
+          color: AppColors.creamLight,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFF0F0F0),
@@ -149,7 +150,7 @@ class SettingsList extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDestructive
                     ? const Color(0xFFFFF5F5)
-                    : const Color(0xFFF5F5F5),
+                    : AppColors.creamCard,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -275,7 +276,7 @@ class SettingsList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A1A1A) : const Color(0xFFFAFAFA),
+          color: isSelected ? const Color(0xFF1A1A1A) : AppColors.creamCard,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(

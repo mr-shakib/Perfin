@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../models/transaction.dart';
 import 'package:intl/intl.dart';
+import '../../../theme/app_colors.dart';
 
 /// Recent Transactions List - Clean Minimal Design
 /// Requirements: 1.7-1.8
@@ -19,8 +20,12 @@ class RecentTransactionsList extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: AppColors.creamLight,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFE5E5E5),
+                width: 1,
+              ),
             ),
             child: const Column(
               children: [
@@ -47,8 +52,12 @@ class RecentTransactionsList extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: AppColors.creamLight,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFE5E5E5),
+              width: 1,
+            ),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(

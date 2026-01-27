@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/recurring_expense.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying detected recurring expenses
 /// Requirements: 4.7-4.8
@@ -71,7 +72,7 @@ class RecurringExpensesList extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isUpcoming ? const Color(0xFFFFF3CD) : const Color(0xFFF5F5F5),
+        color: isUpcoming ? const Color(0xFFFFF3CD) : AppColors.creamCard,
         borderRadius: BorderRadius.circular(12),
         border: isUpcoming
             ? Border.all(
@@ -221,7 +222,7 @@ class RecurringExpensesList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
@@ -249,7 +250,7 @@ class RecurringExpensesList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

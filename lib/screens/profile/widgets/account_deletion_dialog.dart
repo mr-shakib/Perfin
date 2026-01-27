@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../theme/app_colors.dart';
 
 /// Account deletion dialog - Clean Minimal Design
 class AccountDeletionDialog extends StatefulWidget {
@@ -83,7 +84,7 @@ class _AccountDeletionDialogState extends State<AccountDeletionDialog> {
             decoration: InputDecoration(
               hintText: 'DELETE',
               filled: true,
-              fillColor: const Color(0xFFFAFAFA),
+              fillColor: AppColors.creamLight,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(

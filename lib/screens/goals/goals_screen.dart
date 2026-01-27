@@ -52,7 +52,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       body: Consumer2<GoalProvider, AuthProvider>(
         builder: (context, goalProvider, authProvider, _) {
           if (goalProvider.state == LoadingState.loading &&
@@ -77,7 +77,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Header
+                // Header that scrolls away
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,

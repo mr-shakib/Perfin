@@ -119,7 +119,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       body: Consumer3<insight.InsightProvider, AIProvider, TransactionProvider>(
         builder: (context, insightProvider, aiProvider, transactionProvider, _) {
           if (insightProvider.state == insight.LoadingState.loading &&
@@ -143,7 +143,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Header
+                // Header that scrolls away
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,
@@ -162,7 +162,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Time period selector will be added in subtask 6.2
                           _buildTimePeriodSelector(),
                         ],
                       ),

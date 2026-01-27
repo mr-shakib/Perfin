@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
 
 /// Time period options for insights filtering
 enum TimePeriod {
@@ -44,7 +45,7 @@ class TimePeriodSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: const Color(0xFFE0E0E0),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/spending_pattern.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget displaying detected spending patterns
 /// Requirements: 5.1-5.8
@@ -69,7 +70,7 @@ class SpendingPatternsList extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -237,7 +238,7 @@ class SpendingPatternsList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
@@ -265,7 +266,7 @@ class SpendingPatternsList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

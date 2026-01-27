@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../models/chat_message.dart';
+import '../../../theme/app_colors.dart';
 
 /// Display AI response with formatting
 /// Requirements: 7.1-7.10
@@ -27,7 +28,7 @@ class AIResponseCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
+          color: AppColors.creamLight,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),

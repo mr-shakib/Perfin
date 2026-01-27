@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import 'home/home_screen.dart';
 import 'insights/insights_screen.dart';
 import 'copilot/copilot_screen.dart';
@@ -46,45 +47,114 @@ class MainDashboardState extends State<MainDashboard> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.creamLight,
+          border: Border(
+            top: BorderSide(
+              color: const Color(0xFFE5E5E5),
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  index: 0,
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home,
+                  label: 'Home',
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: Icons.insights_outlined,
+                  activeIcon: Icons.insights,
+                  label: 'Insights',
+                ),
+                _buildNavItem(
+                  index: 2,
+                  icon: Icons.chat_bubble_outline,
+                  activeIcon: Icons.chat_bubble,
+                  label: 'Perfin',
+                ),
+                _buildNavItem(
+                  index: 3,
+                  icon: Icons.flag_outlined,
+                  activeIcon: Icons.flag,
+                  label: 'Goals',
+                ),
+                _buildNavItem(
+                  index: 4,
+                  icon: Icons.person_outline,
+                  activeIcon: Icons.person,
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required int index,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+  }) {
+    final isActive = _currentIndex == index;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
           setState(() {
             _currentIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF1A1A1A),
-        unselectedItemColor: const Color(0xFF999999),
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon with background for active state
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isActive 
+                      ? const Color(0xFF1A1A1A) 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isActive ? activeIcon : icon,
+                  color: isActive 
+                      ? Colors.white 
+                      : const Color(0xFF999999),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Label
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive 
+                      ? const Color(0xFF1A1A1A) 
+                      : const Color(0xFF999999),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights_outlined),
-            activeIcon: Icon(Icons.insights),
-            label: 'Insights',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Perfin',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.flag_outlined),
-            activeIcon: Icon(Icons.flag),
-            label: 'Goals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        ),
       ),
     );
   }

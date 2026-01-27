@@ -9,7 +9,6 @@ import 'widgets/budget_status_list.dart';
 import 'widgets/ai_summary_card.dart';
 import 'widgets/recent_transactions_list.dart';
 import 'widgets/quick_action_buttons.dart';
-import '../transactions/add_transaction_screen.dart';
 
 /// Home Tab - Clean Minimal Design
 /// Requirements: 1.1-1.10, 2.1-2.8
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.creamLight,
       body: Consumer3<TransactionProvider, BudgetProvider, AIProvider>(
         builder: (context, transactionProvider, budgetProvider, aiProvider, _) {
           if (transactionProvider.state == LoadingState.loading &&
@@ -80,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Simple header
+                // Header that scrolls away
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,
@@ -89,19 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Overview',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1A1A1A),
-                                  letterSpacing: -1,
-                                ),
-                              ),
-                            ],
+                          const Text(
+                            'Overview',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                              letterSpacing: -1,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.notifications_none),
@@ -159,25 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddTransactionScreen(),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFF1A1A1A),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Add',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       ),
     );
   }
