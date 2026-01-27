@@ -44,8 +44,12 @@ void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Load environment variables (may fail on web, that's okay)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('Warning: Could not load .env file (expected on web): $e');
+  }
   
   // Debug: Check if GROQ_API_KEY is loaded
   debugPrint('=== Environment Variables Debug ===');
@@ -55,14 +59,23 @@ void main() async {
   debugPrint('===================================');
   
   // Initialize Supabase
-  await Supabase.initialize(
-    url: SupabaseConfig.supabaseUrl,
-    anonKey: SupabaseConfig.supabaseAnonKey,
-  );
+  try {
+    await Supabase.initialize(
+      url: SupabaseConfig.supabaseUrl,
+      anonKey: SupabaseConfig.supabaseAnonKey,
+    );
+  } catch (e) {
+    debugPrint('Warning: Supabase initialization failed: $e');
+  }
   
   // Initialize storage service
   final storageService = HiveStorageService();
-  await storageService.init();
+  try {
+    await storageService.init();
+  } catch (e) {
+    debugPrint('Error initializing storage: $e');
+    // Continue anyway - app can still work with limited functionality
+  }
   
   // Initialize sync service for cloud backup
   final syncService = SyncService(storageService);

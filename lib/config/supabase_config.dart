@@ -2,11 +2,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Supabase configuration loaded from environment variables
 class SupabaseConfig {
+  // Hardcoded fallback values for web builds (since .env doesn't work on web)
+  static const String _fallbackUrl = 'https://qtsamrmwknmqghqfamho.supabase.co';
+  static const String _fallbackAnonKey = 'sb_publishable_M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP';
+
   /// Get Supabase URL from environment
   static String get supabaseUrl {
     final url = dotenv.env['SUPABASE_URL'];
     if (url == null || url.isEmpty) {
-      throw Exception('SUPABASE_URL not found in .env file');
+      return _fallbackUrl;
     }
     return url;
   }
@@ -16,7 +20,7 @@ class SupabaseConfig {
   static String get supabaseAnonKey {
     final key = dotenv.env['SUPABASE_ANON_KEY'];
     if (key == null || key.isEmpty) {
-      throw Exception('SUPABASE_ANON_KEY not found in .env file');
+      return _fallbackAnonKey;
     }
     return key;
   }

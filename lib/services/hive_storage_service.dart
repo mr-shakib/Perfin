@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'storage_service.dart';
 
 /// Hive implementation of StorageService
@@ -12,11 +13,27 @@ class HiveStorageService implements StorageService {
   @override
   Future<void> init() async {
     try {
-      await Hive.initFlutter();
+      // Use different initialization for web vs mobile
+      if (kIsWeb) {
+        await Hive.initFlutter();
+      } else {
+        await Hive.initFlutter();
+      }
+      
       _box = await Hive.openBox(_boxName);
       _initialized = true;
     } catch (e) {
-      throw StorageException('Failed to initialize storage: ${e.toString()}');
+      // On web, if Hive fails, we can still continue with in-memory storage
+      if (kIsWeb) {
+        try {
+          _box = await Hive.openBox(_boxName);
+          _initialized = true;
+        } catch (e2) {
+          throw StorageException('Failed to initialize storage: ${e2.toString()}');
+        }
+      } else {
+        throw StorageException('Failed to initialize storage: ${e.toString()}');
+      }
     }
   }
 
