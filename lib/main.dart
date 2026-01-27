@@ -13,12 +13,15 @@ import 'services/onboarding_service.dart';
 import 'services/goal_service.dart';
 import 'services/insight_service.dart';
 import 'services/ai_service.dart';
+import 'services/notification_service.dart';
+import 'services/notification_helper.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/onboarding_provider.dart';
 import 'providers/ai_provider.dart';
+import 'providers/insight_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -28,7 +31,10 @@ import 'screens/onboarding/onboarding_benefits_screen.dart';
 import 'screens/onboarding/onboarding_notifications_screen.dart';
 import 'screens/onboarding/onboarding_weekly_review_screen.dart';
 import 'screens/notification_test_screen.dart';
+import 'screens/main_dashboard.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/transactions/add_transaction_screen.dart';
+import 'screens/budget/manage_budget_screen.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -36,6 +42,13 @@ void main() async {
   
   // Load environment variables
   await dotenv.load(fileName: ".env");
+  
+  // Debug: Check if GROQ_API_KEY is loaded
+  debugPrint('=== Environment Variables Debug ===');
+  debugPrint('GROQ_API_KEY loaded: ${dotenv.env['GROQ_API_KEY'] != null}');
+  debugPrint('GROQ_API_KEY length: ${dotenv.env['GROQ_API_KEY']?.length ?? 0}');
+  debugPrint('All env keys: ${dotenv.env.keys.toList()}');
+  debugPrint('===================================');
   
   // Initialize Supabase
   await Supabase.initialize(
@@ -56,8 +69,18 @@ void main() async {
   final goalService = GoalService(storageService, transactionService);
   final insightService = InsightService(transactionService);
   
-  // Get AI API key from environment
-  final aiApiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+  // Initialize notification service
+  final notificationHelper = NotificationHelper();
+  final notificationService = NotificationService(storageService, notificationHelper);
+  await notificationService.initialize();
+  
+  // Get AI API key from environment (using Groq instead of Gemini)
+  final aiApiKey = dotenv.env['GROQ_API_KEY'] ?? '';
+  debugPrint('AI API Key loaded: ${aiApiKey.isNotEmpty ? "Yes (${aiApiKey.length} chars)" : "No - EMPTY!"}');
+  if (aiApiKey.isEmpty) {
+    debugPrint('WARNING: GROQ_API_KEY is not set in .env file!');
+    debugPrint('Available keys in .env: ${dotenv.env.keys.join(", ")}');
+  }
   final aiService = AIService(
     transactionService: transactionService,
     budgetService: budgetService,
@@ -73,6 +96,8 @@ void main() async {
     budgetService: budgetService,
     onboardingService: onboardingService,
     aiService: aiService,
+    insightService: insightService,
+    notificationService: notificationService,
   ));
 }
 
@@ -83,6 +108,8 @@ class MyApp extends StatelessWidget {
   final BudgetService budgetService;
   final OnboardingService onboardingService;
   final AIService aiService;
+  final InsightService insightService;
+  final NotificationService notificationService;
 
   const MyApp({
     super.key,
@@ -92,6 +119,8 @@ class MyApp extends StatelessWidget {
     required this.budgetService,
     required this.onboardingService,
     required this.aiService,
+    required this.insightService,
+    required this.notificationService,
   });
 
   @override
@@ -115,9 +144,9 @@ class MyApp extends StatelessWidget {
         
         // TransactionProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, TransactionProvider>(
-          create: (_) => TransactionProvider(transactionService),
+          create: (_) => TransactionProvider(transactionService, notificationService),
           update: (_, auth, previous) {
-            final provider = previous ?? TransactionProvider(transactionService);
+            final provider = previous ?? TransactionProvider(transactionService, notificationService);
             provider.updateUserId(auth.user?.id);
             return provider;
           },
@@ -138,6 +167,16 @@ class MyApp extends StatelessWidget {
           create: (_) => AIProvider(aiService),
           update: (_, auth, previous) {
             final provider = previous ?? AIProvider(aiService);
+            provider.updateUserId(auth.user?.id);
+            return provider;
+          },
+        ),
+        
+        // InsightProvider depends on AuthProvider
+        ChangeNotifierProxyProvider<AuthProvider, InsightProvider>(
+          create: (_) => InsightProvider(insightService),
+          update: (_, auth, previous) {
+            final provider = previous ?? InsightProvider(insightService);
             provider.updateUserId(auth.user?.id);
             return provider;
           },
@@ -199,10 +238,12 @@ class _AppRootState extends State<AppRoot> {
             '/onboarding/benefits': (context) => const OnboardingBenefitsScreen(),
             '/onboarding/notifications': (context) => const OnboardingNotificationsScreen(),
             '/onboarding/weekly-review': (context) => const OnboardingWeeklyReviewScreen(),
-            '/dashboard': (context) => const HomeScreen(), // Updated to use HomeScreen
-            '/home': (context) => const HomeScreen(),
+            '/dashboard': (context) => const MainDashboard(), // Main dashboard with tabs
+            '/home': (context) => const HomeScreen(), // Direct access to home (for testing)
             '/transactions': (context) => const MyHomePage(title: 'Transactions'),
+            '/transactions/add': (context) => const AddTransactionScreen(),
             '/budget': (context) => const MyHomePage(title: 'Budget'),
+            '/budget/manage': (context) => const ManageBudgetScreen(),
             '/analytics': (context) => const MyHomePage(title: 'Analytics'),
             '/settings': (context) => const MyHomePage(title: 'Settings'),
             '/notification-test': (context) => const NotificationTestScreen(),

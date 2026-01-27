@@ -91,7 +91,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
 - [x] 3. Implement AI Engine service
   - [x] 3.1 Implement AIService core infrastructure
     - Set up connection to AI provider (OpenAI, Anthropic, or local model)
-    - Use gemini free one here is the api : AIzaSyC0S5-jGnFxY17MmDC2y1FtBnoZz5LaptM
+    - Use Groq API with your own API key (set in .env file as GROQ_API_KEY)
     - Implement prompt templates for different AI operations
     - Implement confidence score calculation logic
     - Implement data verification methods (verify transaction IDs, amounts)
@@ -258,48 +258,48 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Test navigation
     - Test error handling
 
-- [ ] 6. Implement Insights Tab UI
-  - [ ] 6.1 Create InsightsScreen widget with layout
+- [x] 6. Implement Insights Tab UI
+  - [x] 6.1 Create InsightsScreen widget with layout
     - Set up tab structure
     - Create main scrollable layout
     - Wire up TransactionProvider, AIProvider, InsightProvider
     - _Requirements: 3.1-3.9_
   
-  - [ ] 6.2 Implement TimePeriodSelector widget
+  - [x] 6.2 Implement TimePeriodSelector widget
     - Create dropdown/segmented control
     - Options: current month, last month, last 3 months, last 6 months, last year
     - Trigger data refresh on selection change
     - Default to current month
     - _Requirements: 3.2-3.4_
   
-  - [ ] 6.3 Implement SpendingBreakdownChart widget
+  - [x] 6.3 Implement SpendingBreakdownChart widget
     - Create pie/donut chart using fl_chart package
     - Show category breakdown with percentages
     - Support tap to drill down
     - Handle empty state
     - _Requirements: 3.1, 3.5-3.6_
   
-  - [ ] 6.4 Implement SpendingTrendChart widget
+  - [x] 6.4 Implement SpendingTrendChart widget
     - Create line/bar chart using fl_chart package
     - Show spending over time
     - Aggregate by day or week based on period
     - Handle empty state
     - _Requirements: 3.7_
   
-  - [ ] 6.5 Implement PredictionCard widget
+  - [x] 6.5 Implement PredictionCard widget
     - Display end-of-month prediction
     - Show confidence score with visual indicator
     - Show explanation
     - Handle insufficient data state
     - _Requirements: 4.1-4.6_
   
-  - [ ] 6.6 Implement RecurringExpensesList widget
+  - [x] 6.6 Implement RecurringExpensesList widget
     - Display detected recurring expenses
     - Show amount, frequency, next expected date
     - Handle empty state
     - _Requirements: 4.7-4.8_
   
-  - [ ] 6.7 Implement SpendingPatternsList widget
+  - [x] 6.7 Implement SpendingPatternsList widget
     - Display detected patterns
     - Show trend indicators
     - Show explanations
@@ -311,34 +311,34 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Test filter functionality
     - Test empty states
 
-- [ ] 7. Implement Copilot Tab UI
-  - [ ] 7.1 Create CopilotScreen widget with layout
+- [x] 7. Implement Copilot Tab UI
+  - [x] 7.1 Create CopilotScreen widget with layout
     - Set up tab structure
     - Create chat interface layout
     - Wire up AIProvider, TransactionProvider, BudgetProvider, GoalProvider
     - _Requirements: 6.1-6.10_
   
-  - [ ] 7.2 Implement ChatMessageList widget
+  - [x] 7.2 Implement ChatMessageList widget
     - Scrollable list of messages
     - Display user and assistant messages
     - Show timestamps
     - Auto-scroll to latest message
     - _Requirements: 6.1, 6.4_
   
-  - [ ] 7.3 Implement ChatInputField widget
+  - [x] 7.3 Implement ChatInputField widget
     - Multi-line text input
     - Send button
     - Character limit
     - Handle enter key
     - _Requirements: 6.2_
   
-  - [ ] 7.4 Implement SuggestedQuestionsList widget
+  - [x] 7.4 Implement SuggestedQuestionsList widget
     - Display suggested questions for first-time users
     - Populate input on tap
     - Examples: "How much did I spend this month?", "Am I on track with my budget?"
     - _Requirements: 6.10_
   
-  - [ ] 7.5 Implement AIResponseCard widget
+  - [x] 7.5 Implement AIResponseCard widget
     - Display AI response with formatting
     - Show confidence indicators
     - Show data references
@@ -346,7 +346,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Show calculations inline
     - _Requirements: 7.1-7.10_
   
-  - [ ] 7.6 Implement LoadingIndicator widget
+  - [x] 7.6 Implement LoadingIndicator widget
     - Typing indicator animation
     - Show while AI processes query
     - _Requirements: 6.3_

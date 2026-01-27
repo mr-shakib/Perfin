@@ -14,12 +14,12 @@ class AIServiceFactory {
     required GoalService goalService,
     required InsightService insightService,
   }) {
-    // Load API key from environment
-    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+    // Load API key from environment (using Groq)
+    final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
     
     if (apiKey.isEmpty) {
       throw Exception(
-        'GEMINI_API_KEY not found in environment. '
+        'GROQ_API_KEY not found in environment. '
         'Please add it to your .env file.',
       );
     }

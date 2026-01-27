@@ -14,9 +14,9 @@ The older version of `supabase_flutter` package didn't support the new key forma
 
 ### 1. Updated `.env` with Correct Keys
 ```env
-SUPABASE_URL=https://qtsamrmwknmqghqfamho.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP
-SUPABASE_SERVICE_ROLE_KEY=sb_secret__9DC4WezQHD9eF2555bfXQ_5F4zYBfEm
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
 ### 2. Updated Supabase Package
@@ -26,21 +26,19 @@ The newer version supports both key formats.
 
 ## Your Supabase Keys
 
+Get your keys from Supabase dashboard → Settings → API:
+
 ### Anon Key (Public - Safe for Client)
-```
-sb_publishable_M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP
-```
 - ✅ Use this in the Flutter app
 - ✅ Safe to expose in mobile apps
 - ✅ Protected by Row Level Security
+- Format: `sb_publishable_...` or JWT token starting with `eyJ...`
 
 ### Service Role Key (Secret - Backend Only)
-```
-sb_secret__9DC4WezQHD9eF2555bfXQ_5F4zYBfEm
-```
 - ❌ NEVER use in client-side code
 - ❌ Bypasses all security rules
 - ✅ Only for backend/admin operations
+- Format: `sb_secret_...` or JWT token
 
 ## Next Steps
 
@@ -100,7 +98,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0c2Ftcm1
 
 ### New Format (Simplified)
 ```
-sb_publishable_M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP
+sb_publishable_XXXXXXXXXXXXXXXXXXXXXXXX
 ```
 - Shorter and cleaner
 - Easier to read and manage

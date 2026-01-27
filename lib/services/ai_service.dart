@@ -1,5 +1,7 @@
 import 'dart:math';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import '../models/ai_summary.dart';
 import '../models/spending_prediction.dart';
 import '../models/spending_pattern.dart';
@@ -18,13 +20,15 @@ import 'goal_service.dart';
 import 'insight_service.dart';
 
 /// Service responsible for AI-powered insights and predictions
-/// Uses Google Gemini API for natural language generation
+/// Uses Groq API for natural language generation
 class AIService {
   final TransactionService _transactionService;
   final BudgetService _budgetService;
   final GoalService _goalService;
   final InsightService _insightService;
-  final GenerativeModel _model;
+  final String _apiKey;
+  final String _baseUrl = 'https://api.groq.com/openai/v1';
+  final String _model = 'llama-3.3-70b-versatile'; // Free, fast, and powerful
 
   // Essential categories that should not be suggested for reduction
   static const List<String> _essentialCategories = [
@@ -47,10 +51,48 @@ class AIService {
         _budgetService = budgetService,
         _goalService = goalService,
         _insightService = insightService,
-        _model = GenerativeModel(
-          model: 'gemini-1.5-flash',
-          apiKey: apiKey,
-        );
+        _apiKey = apiKey {
+    if (apiKey.isEmpty) {
+      debugPrint('ERROR: AIService initialized with empty API key!');
+    }
+  }
+
+  /// Call Groq API with a prompt
+  Future<String> _callGroqAPI(String prompt) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': _model,
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'temperature': 0.7,
+          'max_tokens': 1024,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final content = data['choices']?[0]?['message']?['content'];
+        if (content == null) {
+          debugPrint('Groq API returned null content: ${response.body}');
+          return 'I apologize, but I received an empty response. Please try again.';
+        }
+        return content as String;
+      } else {
+        debugPrint('Groq API error: ${response.statusCode} - ${response.body}');
+        return 'I encountered an error (${response.statusCode}). Please try again.';
+      }
+    } catch (e) {
+      debugPrint('Groq API call error: $e');
+      return 'I\'m having trouble connecting. Please check your internet connection and try again.';
+    }
+  }
 
   /// Exclude outliers from a list of values
   /// Outliers are defined as values beyond 2 standard deviations from mean
@@ -238,27 +280,24 @@ class AIService {
         ),
       );
 
-      // Generate natural language summary using Gemini
+      // Generate natural language summary using Groq AI
       final summaryPrompt = '''
-Generate a brief, friendly financial summary (2-3 sentences) based on this data:
-- Total spending: \$${totalSpending.toStringAsFixed(2)}
-- Total income: \$${totalIncome.toStringAsFixed(2)}
-- Top spending category: $topCategory (\$${topAmount.toStringAsFixed(2)})
-- Previous period spending: \$${prevTotalSpending.toStringAsFixed(2)}
+You're a friendly personal finance manager. Create a SHORT, upbeat summary (1-2 sentences max) of their finances:
+
+Data:
+- Spending: \$${totalSpending.toStringAsFixed(2)}
+- Income: \$${totalIncome.toStringAsFixed(2)}
+- Top category: $topCategory (\$${topAmount.toStringAsFixed(2)})
+- Last period: \$${prevTotalSpending.toStringAsFixed(2)}
 - Unusual transactions: ${highConfidenceAnomalies.length}
 
-Guidelines:
-- Be conversational and supportive
-- Use "unusual" not "wrong" for anomalies
-- Clearly label any predictions with "based on your patterns" or "estimated"
-- If confidence is low, acknowledge uncertainty
-- Focus on facts, not judgments
+Tone: Casual, encouraging, emoji-friendly 💰
+Keep it super brief - like a quick text update!
 ''';
 
       String summaryText;
       try {
-        final response = await _model.generateContent([Content.text(summaryPrompt)]);
-        summaryText = response.text ?? 'Unable to generate summary at this time.';
+        summaryText = await _callGroqAPI(summaryPrompt);
       } catch (e) {
         // Fallback to factual summary if AI fails
         summaryText =
@@ -366,7 +405,7 @@ Guidelines:
         assumptions.add('Your spending varies significantly, increasing uncertainty');
       }
 
-      // Generate explanation using Gemini
+      // Generate explanation using Groq AI
       final explanationPrompt = '''
 Generate a brief explanation (1-2 sentences) for this spending prediction:
 - Predicted amount: \$${predictedAmount.toStringAsFixed(2)}
@@ -374,21 +413,15 @@ Generate a brief explanation (1-2 sentences) for this spending prediction:
 - Based on: ${cleanedExpenses.length} transactions over 90 days
 - Average daily spending: \$${avgDailySpending.toStringAsFixed(2)}
 
-Guidelines:
-- Clearly label this as a prediction/estimate
-- Mention the confidence level
-- Be honest about uncertainty if confidence is low
-- Keep it simple and actionable
+Quick, friendly explanation (1 sentence) - be casual and mention confidence!
 ''';
 
       String explanation;
       try {
-        final response = await _model.generateContent([Content.text(explanationPrompt)]);
-        explanation = response.text ??
-            'Estimated based on your recent spending patterns.';
+        explanation = await _callGroqAPI(explanationPrompt);
       } catch (e) {
         explanation =
-            'Predicted based on your average daily spending of \$${avgDailySpending.toStringAsFixed(2)} over the last 90 days.';
+            'Based on your spending pattern, you\'ll likely spend around \$${predictedAmount.toStringAsFixed(2)} 📊';
       }
 
       return SpendingPrediction(
@@ -712,12 +745,35 @@ Guidelines:
             .where((t) => t.type == TransactionType.income)
             .fold<double>(0.0, (sum, t) => sum + t.amount);
 
+        // Get spending by category using InsightService
+        final now = DateTime.now();
+        final startOfMonth = DateTime(now.year, now.month, 1);
+        final categorySpending = await _insightService.calculateSpendingByCategory(
+          userId: userId,
+          startDate: startOfMonth,
+          endDate: now,
+        );
+
+        // Sort categories by spending (highest first)
+        final sortedCategories = categorySpending.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        // Build category breakdown string
+        final categoryBreakdown = sortedCategories.isNotEmpty
+            ? sortedCategories
+                .map((e) => '  - ${e.key}: \$${e.value.toStringAsFixed(2)}')
+                .join('\n')
+            : '  (No category data available)';
+
         contextParts.add('''
 Transaction Data:
 - Total transactions: ${transactions.length}
 - Total spending: \$${totalSpending.toStringAsFixed(2)}
 - Total income: \$${totalIncome.toStringAsFixed(2)}
 - Date range: ${transactions.last.date.toString().split(' ')[0]} to ${transactions.first.date.toString().split(' ')[0]}
+
+Spending by Category (Current Month):
+$categoryBreakdown
 ''');
       }
 
@@ -746,38 +802,56 @@ Goal Data:
 
       // Build prompt
       final prompt = '''
-You are a helpful financial assistant. Answer the user's question based ONLY on their actual data.
+You are Perfin's AI personal finance manager - friendly, supportive, and conversational. Think of yourself as the user's financial buddy who helps them make smart money decisions.
 
-User Data:
+User's Financial Data:
 ${contextParts.join('\n')}
 
-Conversation History:
+Recent Conversation:
 $conversationContext
 
-User Question: $query
+User's Question: $query
 
-Guidelines:
-1. Use EXACT values from the data provided - never approximate
-2. If you reference a transaction amount, verify it exists in the data
-3. If you don't have the information, say "I don't have that information" - never guess
-4. Show your calculations explicitly
-5. If the question is ambiguous, ask clarifying questions
-6. Clearly label predictions as "estimated" or "predicted"
-7. Be conversational and supportive
-8. Don't provide investment advice or recommend specific financial products
-9. For tax questions, recommend consulting a tax professional
-10. Avoid judgmental language about spending choices
+Your Personality:
+- Warm and encouraging, never judgmental
+- Use casual, friendly language (like texting a friend)
+- Keep responses SHORT and to the point (2-4 sentences max)
+- Use emojis occasionally to be more personable 💰 📊 🎯
+- Celebrate wins and progress
+- Be empathetic about financial challenges
 
-Response format:
-- Answer the question directly
-- Show any calculations used
-- Reference specific data points
-- State confidence level if making predictions
+Response Guidelines:
+1. Answer directly - no fluff or unnecessary details
+2. Use EXACT numbers from their data
+3. If you don't have the info, just say "I don't have that data yet"
+4. Show quick calculations when relevant (e.g., "Food: \$250 + Shopping: \$180 = \$430 total")
+5. Give actionable advice when appropriate
+6. Never guess or make up numbers
+7. For predictions, say "based on your spending pattern" or "estimated"
+8. Keep it conversational - avoid formal financial jargon
+
+Examples of your tone:
+- Instead of: "Your total expenditure for the Food category amounts to \$250.00"
+- Say: "You spent \$250 on Food this month 🍕"
+
+- Instead of: "I recommend implementing a budget reduction strategy"
+- Say: "Try cutting back a bit on dining out - could save you \$50-100!"
+
+- Instead of: "Your financial trajectory indicates positive momentum"
+- Say: "Nice! You're doing great this month 🎉"
+
+Now answer their question in a friendly, helpful way:
 ''';
 
       // Generate response
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final responseText = response.text ?? 'I apologize, but I\'m unable to process your request at this time.';
+      String responseText;
+      try {
+        responseText = await _callGroqAPI(prompt);
+      } catch (e) {
+        // If AI generation fails, provide a helpful fallback response
+        debugPrint('Groq API error: $e');
+        responseText = 'I\'m having trouble connecting to my AI service right now. Please check your internet connection and try again. If the problem persists, the API key might be invalid.';
+      }
 
       // Extract data references and calculations
       final dataReferences = <DataReference>[];
@@ -795,15 +869,17 @@ Response format:
       }
 
       // Calculate confidence score based on data availability
-      int confidenceScore = 80;
+      int confidenceScore = 85;
       if (transactions.isEmpty) {
-        confidenceScore = 20;
+        confidenceScore = 30;
+      } else if (transactions.length < 5) {
+        confidenceScore = 60;
       } else if (transactions.length < 10) {
-        confidenceScore = 50;
+        confidenceScore = 75;
       }
 
       if (requiresClarification) {
-        confidenceScore = 40;
+        confidenceScore = min(confidenceScore, 50);
       }
 
       return AIResponse(
@@ -949,31 +1025,25 @@ Response format:
         minDataPoints: 30,
       );
 
-      // Generate explanation using Gemini
+      // Generate explanation using Groq AI
       final explanationPrompt = '''
-Generate a brief, supportive explanation (2-3 sentences) for this goal feasibility analysis:
+Friendly, encouraging message (1-2 sentences) about their goal:
 - Goal: ${goal.name}
-- Target amount: \$${goal.targetAmount.toStringAsFixed(2)}
-- Current amount: \$${goal.currentAmount.toStringAsFixed(2)}
-- Required monthly savings: \$${requiredMonthlySavings.toStringAsFixed(2)}
-- Average monthly surplus: \$${averageMonthlySurplus.toStringAsFixed(2)}
+- Target: \$${goal.targetAmount.toStringAsFixed(2)}
+- Current: \$${goal.currentAmount.toStringAsFixed(2)}
+- Need to save monthly: \$${requiredMonthlySavings.toStringAsFixed(2)}
+- Monthly surplus: \$${averageMonthlySurplus.toStringAsFixed(2)}
 - Feasibility: ${feasibilityLevel.name}
 
-Guidelines:
-- Be encouraging and supportive
-- Provide actionable advice
-- If challenging, mention spending reduction suggestions
-- If easy, provide positive reinforcement
+Be supportive and actionable! Use emojis 🎯
 ''';
 
       String explanation;
       try {
-        final response = await _model.generateContent([Content.text(explanationPrompt)]);
-        explanation = response.text ??
-            'Based on your current spending patterns, this goal is ${feasibilityLevel.name}.';
+        explanation = await _callGroqAPI(explanationPrompt);
       } catch (e) {
         explanation =
-            'You need to save \$${requiredMonthlySavings.toStringAsFixed(2)} per month. Your average monthly surplus is \$${averageMonthlySurplus.toStringAsFixed(2)}.';
+            'You need to save \$${requiredMonthlySavings.toStringAsFixed(2)}/month. Your current surplus is \$${averageMonthlySurplus.toStringAsFixed(2)} 🎯';
       }
 
       return GoalFeasibilityAnalysis(
@@ -1193,3 +1263,7 @@ class AIServiceException implements Exception {
   @override
   String toString() => 'AIServiceException: $message';
 }
+
+
+
+

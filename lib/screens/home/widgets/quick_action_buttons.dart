@@ -1,122 +1,98 @@
 import 'package:flutter/material.dart';
+import '../../transactions/add_transaction_screen.dart';
+import '../../budget/manage_budget_screen.dart';
+import '../../../screens/main_dashboard.dart';
 
-/// Quick Action Buttons Widget
-/// Provides buttons for common actions: add transaction, view all transactions, create budget
+/// Quick Action Buttons - Clean Minimal Design
 /// Requirements: 1.9
 class QuickActionButtons extends StatelessWidget {
   const QuickActionButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Quick Actions',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    context,
-                    icon: Icons.add_circle,
-                    label: 'Add Transaction',
-                    color: Colors.blue,
-                    onTap: () {
-                      // TODO: Navigate to add transaction screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Add transaction coming soon!'),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    context,
-                    icon: Icons.list_alt,
-                    label: 'View All',
-                    color: Colors.purple,
-                    onTap: () {
-                      // TODO: Navigate to all transactions screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('View all transactions coming soon!'),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: _buildActionButton(
+    return Row(
+      children: [
+        Expanded(
+          child: _buildButton(
+            context,
+            'Add',
+            Icons.add,
+            const Color(0xFF1A1A1A),
+            () {
+              Navigator.push(
                 context,
-                icon: Icons.pie_chart,
-                label: 'Create Budget',
-                color: Colors.green,
-                onTap: () {
-                  // TODO: Navigate to create budget screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Create budget coming soon!'),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                MaterialPageRoute(
+                  builder: (context) => const AddTransactionScreen(),
+                ),
+              );
+            },
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildButton(
+            context,
+            'Stats',
+            Icons.bar_chart,
+            const Color(0xFFF5F5F5),
+            () {
+              // Switch to Insights tab (index 1)
+              MainDashboard.switchTab(context, 1);
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildButton(
+            context,
+            'Budget',
+            Icons.pie_chart_outline,
+            const Color(0xFFF5F5F5),
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ManageBudgetScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color bgColor,
+    VoidCallback? onTap,
+  ) {
+    final isDark = bgColor == const Color(0xFF1A1A1A);
+    
     return Material(
-      color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(12),
+      color: bgColor,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
             children: [
               Icon(
                 icon,
-                color: color,
-                size: 24,
+                color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                size: 28,
               ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                  textAlign: TextAlign.center,
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

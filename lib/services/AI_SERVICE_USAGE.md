@@ -306,7 +306,7 @@ The Gemini API key is stored securely in the `.env` file:
 **Step 1: Add to .env file**
 ```env
 # .env file
-GEMINI_API_KEY=AIzaSyC0S5-jGnFxY17MmDC2y1FtBnoZz5LaptM
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 **Step 2: Load in main.dart**

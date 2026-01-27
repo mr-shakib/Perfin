@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/transaction.dart';
 import '../models/monthly_summary.dart';
+import '../models/budget.dart';
 import '../services/transaction_service.dart';
+import '../services/notification_service.dart';
 import '../utils/calculation_utils.dart';
 
 /// Enum representing the loading state
@@ -17,6 +19,7 @@ enum LoadingState {
 /// Provides derived state calculations for balance, summaries, and analytics
 class TransactionProvider extends ChangeNotifier {
   final TransactionService _transactionService;
+  final NotificationService? _notificationService;
   String? _userId;
 
   // Private state
@@ -24,7 +27,11 @@ class TransactionProvider extends ChangeNotifier {
   LoadingState _state = LoadingState.idle;
   String? _errorMessage;
 
-  TransactionProvider(this._transactionService);
+  // Budget tracking for notifications
+  Budget? _monthlyBudget;
+  Map<String, double> _categoryBudgets = {};
+
+  TransactionProvider(this._transactionService, [this._notificationService]);
 
   // Public getters for base state
   List<Transaction> get transactions => List.unmodifiable(_transactions);
@@ -83,6 +90,12 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  /// Update budget information for notification checking
+  void updateBudgets(Budget? monthlyBudget, Map<String, double> categoryBudgets) {
+    _monthlyBudget = monthlyBudget;
+    _categoryBudgets = categoryBudgets;
+  }
+
   /// Load transactions from storage
   /// Sets state to loading during fetch
   /// Sets state to loaded on success
@@ -139,6 +152,9 @@ class TransactionProvider extends ChangeNotifier {
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
+
+      // Check budget and send notifications if needed
+      await _checkBudgetAndNotify();
     } on ValidationException catch (e) {
       _state = LoadingState.error;
       _errorMessage = 'Validation failed: ${e.message}';
@@ -235,5 +251,66 @@ class TransactionProvider extends ChangeNotifier {
             (t.date.isAfter(start) || t.date.isAtSameMomentAs(start)) &&
             (t.date.isBefore(end) || t.date.isAtSameMomentAs(end)))
         .toList();
+  }
+
+  /// Check budget utilization and send notifications if thresholds are exceeded
+  Future<void> _checkBudgetAndNotify() async {
+    if (_notificationService == null || _userId == null) return;
+
+    final now = DateTime.now();
+    final currentMonthExpenses = currentMonthSummary.totalExpense;
+
+    // Check monthly budget
+    if (_monthlyBudget != null &&
+        _monthlyBudget!.year == now.year &&
+        _monthlyBudget!.month == now.month) {
+      final utilization = (currentMonthExpenses / _monthlyBudget!.amount) * 100;
+
+      // Send notification if budget is at 80% or over 100%
+      if (utilization >= 80) {
+        try {
+          await _notificationService.sendBudgetAlert(
+            userId: _userId!,
+            budget: _monthlyBudget!,
+            utilizationPercentage: utilization,
+          );
+        } catch (e) {
+          // Don't fail transaction if notification fails
+          debugPrint('Failed to send budget notification: $e');
+        }
+      }
+    }
+
+    // Check category budgets
+    final expensesByCategory = this.expensesByCategory;
+    for (var entry in _categoryBudgets.entries) {
+      final category = entry.key;
+      final budgetAmount = entry.value;
+      final spent = expensesByCategory[category] ?? 0.0;
+      final utilization = (spent / budgetAmount) * 100;
+
+      // Send notification if category budget is at 80% or over 100%
+      if (utilization >= 80) {
+        try {
+          // Create a budget object for the category
+          final categoryBudget = Budget(
+            id: 'category_$category',
+            userId: _userId!,
+            amount: budgetAmount,
+            year: now.year,
+            month: now.month,
+          );
+
+          await _notificationService.sendBudgetAlert(
+            userId: _userId!,
+            budget: categoryBudget,
+            utilizationPercentage: utilization,
+          );
+        } catch (e) {
+          // Don't fail transaction if notification fails
+          debugPrint('Failed to send category budget notification: $e');
+        }
+      }
+    }
   }
 }

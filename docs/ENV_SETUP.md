@@ -10,9 +10,9 @@ The app now uses environment variables to manage sensitive credentials securely.
 Contains actual credentials - **NEVER commit this file!**
 
 ```env
-SUPABASE_URL=https://qtsamrmwknmqghqfamho.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=sb_secret__9DC4WezQHD9eF2555bfXQ_5F4zYBfEm
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
 ### 2. `.env.example` (Version Controlled)
@@ -199,18 +199,13 @@ void main() async {
 - [x] Updated `main.dart` to load env file
 - [x] Tested app with new configuration
 
-## Your Current Credentials
+## Your Credentials
 
-**Supabase URL**: `https://qtsamrmwknmqghqfamho.supabase.co`
+Get your credentials from Supabase dashboard:
+1. Go to your project at https://supabase.com/dashboard
+2. Navigate to Settings → API
+3. Copy your Project URL and anon/public key
+4. Add them to your `.env` file
 
-**Anon Key** (safe for client): 
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0c2Ftcm13a25tcWdocWZhbWhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc4OTI4NzAsImV4cCI6MjA1MzQ2ODg3MH0.M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP
-```
+**Note**: Never share your service role key - it bypasses all security rules! 🔒
 
-**Service Role Key** (backend only):
-```
-sb_secret__9DC4WezQHD9eF2555bfXQ_5F4zYBfEm
-```
-
-These are now stored in `.env` and loaded securely! 🔒

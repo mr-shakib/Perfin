@@ -133,6 +133,9 @@ class BudgetProvider extends ChangeNotifier {
       );
       _categoryBudgets = await _budgetService.fetchCategoryBudgets(_userId!);
       
+      // Update transaction provider with budget info
+      _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
+      
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
@@ -176,6 +179,9 @@ class BudgetProvider extends ChangeNotifier {
       await _budgetService.saveBudget(budget);
       _monthlyBudget = budget;
       
+      // Update transaction provider with new budget info
+      _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
+      
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
@@ -215,6 +221,9 @@ class BudgetProvider extends ChangeNotifier {
       
       // Update local state
       _categoryBudgets[category] = amount;
+      
+      // Update transaction provider with new budget info
+      _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
       
       _state = LoadingState.loaded;
       _errorMessage = null;

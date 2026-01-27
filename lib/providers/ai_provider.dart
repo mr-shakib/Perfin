@@ -222,6 +222,17 @@ class AIProvider extends ChangeNotifier {
     } catch (e) {
       _state = LoadingState.error;
       _errorMessage = 'Failed to process query: ${e.toString()}';
+      
+      // Add error message to chat so user knows what happened
+      final errorMessage = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: _userId!,
+        content: 'Sorry, I encountered an error: ${e.toString()}. Please try again.',
+        role: MessageRole.assistant,
+        timestamp: DateTime.now(),
+      );
+      _chatHistory.add(errorMessage);
+      
       notifyListeners();
     }
   }

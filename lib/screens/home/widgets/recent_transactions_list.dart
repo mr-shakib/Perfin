@@ -4,8 +4,7 @@ import '../../../providers/transaction_provider.dart';
 import '../../../models/transaction.dart';
 import 'package:intl/intl.dart';
 
-/// Recent Transactions List Widget
-/// Displays the last 3 transactions with tap to navigate to detail view
+/// Recent Transactions List - Clean Minimal Design
 /// Requirements: 1.7-1.8
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
@@ -16,88 +15,72 @@ class RecentTransactionsList extends StatelessWidget {
       builder: (context, transactionProvider, _) {
         final allTransactions = transactionProvider.transactions;
 
-        // Handle empty state
         if (allTransactions.isEmpty) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.receipt_long,
-                    size: 64,
-                    color: Colors.grey[400],
+          return Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Column(
+              children: [
+                Icon(
+                  Icons.receipt_long_outlined,
+                  size: 48,
+                  color: Color(0xFFCCCCCC),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No transactions yet',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF666666),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No transactions yet',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Start tracking your finances by adding your first transaction',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
 
-        // Get the 3 most recent transactions
         final recentTransactions = allTransactions.take(3).toList();
 
-        return Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Recent Transactions',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to all transactions
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('View all transactions coming soon!'),
-                          ),
-                        );
-                      },
-                      child: const Text('View All'),
-                    ),
-                  ],
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Recent Transactions',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
                 ),
-                const SizedBox(height: 12),
+              ),
+              const SizedBox(height: 20),
 
-                // Transaction items
-                ...recentTransactions.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final transaction = entry.value;
-                  final isLast = index == recentTransactions.length - 1;
+              ...recentTransactions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final transaction = entry.value;
+                final isLast = index == recentTransactions.length - 1;
 
-                  return Column(
-                    children: [
-                      _buildTransactionItem(context, transaction),
-                      if (!isLast) const Divider(height: 24),
-                    ],
-                  );
-                }).toList(),
-              ],
-            ),
+                return Column(
+                  children: [
+                    _buildTransactionItem(context, transaction),
+                    if (!isLast)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Divider(height: 1, color: Color(0xFFE0E0E0)),
+                      ),
+                  ],
+                );
+              }),
+            ],
           ),
         );
       },
@@ -106,88 +89,75 @@ class RecentTransactionsList extends StatelessWidget {
 
   Widget _buildTransactionItem(BuildContext context, Transaction transaction) {
     final isIncome = transaction.type == TransactionType.income;
-    final dateFormat = DateFormat('MMM dd, yyyy');
+    final dateFormat = DateFormat('MMM dd');
 
     return InkWell(
       onTap: () {
-        // TODO: Navigate to transaction detail view
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Transaction detail for ${transaction.id}'),
             duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            // Icon
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: isIncome
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                    ? const Color(0xFFE8F5E9)
+                    : const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                color: isIncome ? Colors.green : Colors.red,
+                color: isIncome
+                    ? const Color(0xFF00C853)
+                    : const Color(0xFFFF3B30),
                 size: 20,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
 
-            // Transaction details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     transaction.category,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A1A),
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        dateFormat.format(transaction.date),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                      ),
-                      if (transaction.notes != null && transaction.notes!.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        const Text('•'),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            transaction.notes!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ],
+                  Text(
+                    dateFormat.format(transaction.date),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF999999),
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Amount
             Text(
-              '${isIncome ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isIncome ? Colors.green : Colors.red,
-                  ),
+              '${isIncome ? '+' : '-'}\$${transaction.amount.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isIncome
+                    ? const Color(0xFF00C853)
+                    : const Color(0xFFFF3B30),
+              ),
             ),
           ],
         ),
