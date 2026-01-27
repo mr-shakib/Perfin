@@ -174,26 +174,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
           );
         },
       ),
-      floatingActionButton: Consumer<GoalProvider>(
-        builder: (context, goalProvider, _) {
-          if (goalProvider.goals.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          
-          return FloatingActionButton.extended(
-            onPressed: _showCreateGoalForm,
-            backgroundColor: const Color(0xFF1A1A1A),
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'New Goal',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import 'dart:ui';
 import 'home/home_screen.dart';
-import 'insights/insights_screen.dart';
+import 'feed/feed_screen.dart';
 import 'copilot/copilot_screen.dart';
 import 'goals/goals_screen.dart';
 import 'profile/profile_screen.dart';
@@ -25,7 +25,7 @@ class MainDashboardState extends State<MainDashboard> {
 
   final List<Widget> _screens = const [
     HomeScreen(),
-    InsightsScreen(),
+    FeedScreen(),
     CopilotScreen(),
     GoalsScreen(),
     ProfileScreen(),
@@ -43,57 +43,63 @@ class MainDashboardState extends State<MainDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // Allow body to extend behind bottom nav
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.creamLight,
-          border: Border(
-            top: BorderSide(
-              color: const Color(0xFFE5E5E5),
-              width: 1,
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFDF0).withValues(alpha: 0.7),
+              border: Border(
+                top: BorderSide(
+                  color: const Color(0xFFE5E5E5).withValues(alpha: 0.3),
+                  width: 0.5,
+                ),
+              ),
             ),
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  index: 0,
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
-                  label: 'Home',
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(
+                      index: 0,
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home,
+                      label: 'Home',
+                    ),
+                    _buildNavItem(
+                      index: 1,
+                      icon: Icons.view_carousel_outlined,
+                      activeIcon: Icons.view_carousel,
+                      label: 'Feed',
+                    ),
+                    _buildNavItem(
+                      index: 2,
+                      icon: Icons.chat_bubble_outline,
+                      activeIcon: Icons.chat_bubble,
+                      label: 'Perfin',
+                    ),
+                    _buildNavItem(
+                      index: 3,
+                      icon: Icons.flag_outlined,
+                      activeIcon: Icons.flag,
+                      label: 'Goals',
+                    ),
+                    _buildNavItem(
+                      index: 4,
+                      icon: Icons.person_outline,
+                      activeIcon: Icons.person,
+                      label: 'Profile',
+                    ),
+                  ],
                 ),
-                _buildNavItem(
-                  index: 1,
-                  icon: Icons.insights_outlined,
-                  activeIcon: Icons.insights,
-                  label: 'Insights',
-                ),
-                _buildNavItem(
-                  index: 2,
-                  icon: Icons.chat_bubble_outline,
-                  activeIcon: Icons.chat_bubble,
-                  label: 'Perfin',
-                ),
-                _buildNavItem(
-                  index: 3,
-                  icon: Icons.flag_outlined,
-                  activeIcon: Icons.flag,
-                  label: 'Goals',
-                ),
-                _buildNavItem(
-                  index: 4,
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person,
-                  label: 'Profile',
-                ),
-              ],
+              ),
             ),
           ),
         ),

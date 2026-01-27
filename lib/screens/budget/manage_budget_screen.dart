@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/budget_provider.dart';
+import '../../providers/transaction_provider.dart';
 import '../../theme/app_colors.dart';
 
 /// Manage Budget Screen
@@ -17,8 +18,9 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
   final _monthlyBudgetController = TextEditingController();
   final Map<String, TextEditingController> _categoryControllers = {};
   bool _isLoading = false;
+  List<String> _categories = [];
 
-  final List<String> _categories = [
+  final List<String> _defaultCategories = [
     'Food',
     'Transport',
     'Shopping',
@@ -32,6 +34,36 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCategories();
+    });
+  }
+
+  void _loadCategories() {
+    final budgetProvider = context.read<BudgetProvider>();
+    
+    // Get existing categories from budget provider
+    final existingCategories = budgetProvider.categoryBudgets.keys.toSet();
+    
+    // Try to get categories from transactions if available
+    try {
+      final transactionProvider = context.read<TransactionProvider>();
+      final transactionCategories = transactionProvider.transactions
+          .map((t) => t.category)
+          .toSet();
+      existingCategories.addAll(transactionCategories);
+    } catch (e) {
+      // TransactionProvider might not be available, continue with existing categories
+    }
+    
+    // Combine with default categories
+    final allCategories = {..._defaultCategories, ...existingCategories}.toList()
+      ..sort();
+    
+    setState(() {
+      _categories = allCategories;
+    });
+    
     _initializeControllers();
   }
 
@@ -131,111 +163,117 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Monthly Budget Section
-          const Text(
-            'Monthly Budget',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Set your total spending limit for the month',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF666666),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildBudgetField(
-            controller: _monthlyBudgetController,
-            hint: 'Enter monthly budget',
-          ),
-
-          const SizedBox(height: 40),
-
-          // Category Budgets Section
-          const Text(
-            'Category Budgets',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Set spending limits for each category',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF666666),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          ..._categories.map((category) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildBudgetField(
-                    controller: _categoryControllers[category]!,
-                    hint: 'Enter budget for $category',
-                  ),
-                ],
+      body: _categories.isEmpty
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF1A1A1A),
               ),
-            );
-          }),
-
-          const SizedBox(height: 32),
-
-          // Save button
-          SizedBox(
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _saveBudgets,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A1A1A),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                // Monthly Budget Section
+                const Text(
+                  'Monthly Budget',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
+                  ),
                 ),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      'Save Budgets',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(height: 8),
+                const Text(
+                  'Set your total spending limit for the month',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildBudgetField(
+                  controller: _monthlyBudgetController,
+                  hint: 'Enter monthly budget',
+                ),
+
+                const SizedBox(height: 40),
+
+                // Category Budgets Section
+                const Text(
+                  'Category Budgets',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Set spending limits for each category',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                ..._categories.map((category) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          category,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildBudgetField(
+                          controller: _categoryControllers[category]!,
+                          hint: 'Enter budget for $category',
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 32),
+
+                // Save button
+                SizedBox(
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveBudgets,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A1A1A),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Save Budgets',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 

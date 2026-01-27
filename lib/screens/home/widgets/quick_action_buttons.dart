@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../transactions/add_transaction_screen.dart';
 import '../../budget/manage_budget_screen.dart';
-import '../../../screens/main_dashboard.dart';
+import '../../insights/insights_screen.dart';
 import '../../../theme/app_colors.dart';
 
 /// Quick Action Buttons - Clean Minimal Design
@@ -33,12 +33,16 @@ class QuickActionButtons extends StatelessWidget {
         Expanded(
           child: _buildButton(
             context,
-            'Stats',
+            'Insights',
             Icons.bar_chart,
             AppColors.creamCard,
             () {
-              // Switch to Insights tab (index 1)
-              MainDashboard.switchTab(context, 1);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InsightsScreen(),
+                ),
+              );
             },
           ),
         ),

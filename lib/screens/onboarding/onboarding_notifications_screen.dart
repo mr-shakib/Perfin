@@ -32,12 +32,22 @@ class _OnboardingNotificationsScreenState extends State<OnboardingNotificationsS
     if (_permissionRequested) return;
     
     try {
+      // Initialize and request permissions
       await _notificationHelper.initialize();
+      final granted = await _notificationHelper.requestPermissions();
+      
       setState(() {
         _permissionRequested = true;
       });
+      
+      if (granted) {
+        debugPrint('Notification permissions granted');
+      } else {
+        debugPrint('Notification permissions denied');
+      }
     } catch (e) {
       // Permission denied or error - user can still continue
+      debugPrint('Error requesting notification permissions: $e');
       setState(() {
         _permissionRequested = true;
       });

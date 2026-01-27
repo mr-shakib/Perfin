@@ -70,10 +70,10 @@ void main() async {
   final goalService = GoalService(storageService, transactionService);
   final insightService = InsightService(transactionService);
   
-  // Initialize notification service
+  // Initialize notification service (without requesting permissions)
   final notificationHelper = NotificationHelper();
   final notificationService = NotificationService(storageService, notificationHelper);
-  await notificationService.initialize();
+  // Note: Permissions will be requested during onboarding
   
   // Get AI API key from environment (using Groq instead of Gemini)
   final aiApiKey = dotenv.env['GROQ_API_KEY'] ?? '';

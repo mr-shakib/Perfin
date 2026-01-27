@@ -16,6 +16,7 @@ class NotificationHelper {
 
   /// Initialize the notification system
   /// Must be called before sending any notifications
+  /// Does NOT request permissions - call requestPermissions() separately
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -26,12 +27,12 @@ class NotificationHelper {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // iOS initialization settings
+    // iOS initialization settings (without requesting permissions)
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     // Combined initialization settings
@@ -47,15 +48,17 @@ class NotificationHelper {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    // Request permissions for iOS
-    await _requestPermissions();
-
     _isInitialized = true;
   }
 
-  /// Request notification permissions (primarily for iOS)
-  Future<void> _requestPermissions() async {
-    await _flutterLocalNotificationsPlugin
+  /// Request notification permissions (call this separately, e.g., during onboarding)
+  Future<bool> requestPermissions() async {
+    // Ensure initialized first
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    bool? iosGranted = await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(
@@ -65,10 +68,12 @@ class NotificationHelper {
         );
 
     // For Android 13+, request notification permission
-    await _flutterLocalNotificationsPlugin
+    bool? androidGranted = await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
+    return iosGranted ?? androidGranted ?? true;
   }
 
   /// Handle notification tap
