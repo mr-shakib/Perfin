@@ -27,7 +27,7 @@ class AIResponseCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: const Color(0xFFFAFAFA),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),
@@ -37,19 +37,6 @@ class AIResponseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Copy icon in top right
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(
-                  Icons.copy,
-                  size: 14,
-                  color: const Color(0xFF999999),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
             // AI response text with markdown support
             MarkdownBody(
               data: message.content,
@@ -60,7 +47,7 @@ class AIResponseCard extends StatelessWidget {
                   height: 1.5,
                 ),
                 strong: const TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: Color(0xFF1A1A1A),
                 ),
                 em: const TextStyle(
@@ -82,13 +69,13 @@ class AIResponseCard extends StatelessWidget {
 
             // Calculations
             if (calculations != null && calculations.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildCalculations(calculations.cast<String>()),
             ],
 
             // Data references
             if (dataReferences != null && dataReferences.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _buildDataReferences(dataReferences),
             ],
           ],
@@ -112,10 +99,10 @@ class AIResponseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFF0F9FF),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+          color: const Color(0xFFBAE6FD),
           width: 1,
         ),
       ),
@@ -127,15 +114,16 @@ class AIResponseCard extends StatelessWidget {
               Icon(
                 Icons.calculate_outlined,
                 size: 16,
-                color: Color(0xFF2E7D32),
+                color: Color(0xFF0369A1),
               ),
               SizedBox(width: 6),
               Text(
                 'Calculations',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2E7D32),
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0369A1),
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
@@ -147,7 +135,7 @@ class AIResponseCard extends StatelessWidget {
               '• $calc',
               style: const TextStyle(
                 fontSize: 13,
-                color: Color(0xFF1B5E20),
+                color: Color(0xFF075985),
                 fontFamily: 'monospace',
               ),
             ),
@@ -161,10 +149,10 @@ class AIResponseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE3F2FD),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFFAF5FF),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF2196F3).withValues(alpha: 0.3),
+          color: const Color(0xFFE9D5FF),
           width: 1,
         ),
       ),
@@ -176,15 +164,16 @@ class AIResponseCard extends StatelessWidget {
               Icon(
                 Icons.source_outlined,
                 size: 16,
-                color: Color(0xFF1565C0),
+                color: Color(0xFF7C3AED),
               ),
               SizedBox(width: 6),
               Text(
                 'Data Sources',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1565C0),
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7C3AED),
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
@@ -199,7 +188,7 @@ class AIResponseCard extends StatelessWidget {
                 '• $description',
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF0D47A1),
+                  color: Color(0xFF6B21A8),
                 ),
               ),
             );
@@ -211,7 +200,7 @@ class AIResponseCard extends StatelessWidget {
                 '+ ${dataReferences.length - 3} more',
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF1565C0),
+                  color: Color(0xFF7C3AED),
                   fontStyle: FontStyle.italic,
                 ),
               ),

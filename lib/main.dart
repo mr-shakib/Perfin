@@ -100,6 +100,7 @@ void main() async {
     aiService: aiService,
     insightService: insightService,
     notificationService: notificationService,
+    storageService: storageService,
   ));
 }
 
@@ -113,6 +114,7 @@ class MyApp extends StatelessWidget {
   final AIService aiService;
   final InsightService insightService;
   final NotificationService notificationService;
+  final HiveStorageService storageService;
 
   const MyApp({
     super.key,
@@ -125,6 +127,7 @@ class MyApp extends StatelessWidget {
     required this.aiService,
     required this.insightService,
     required this.notificationService,
+    required this.storageService,
   });
 
   @override
@@ -168,9 +171,9 @@ class MyApp extends StatelessWidget {
         
         // AIProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, AIProvider>(
-          create: (_) => AIProvider(aiService),
+          create: (_) => AIProvider(aiService, storageService),
           update: (_, auth, previous) {
-            final provider = previous ?? AIProvider(aiService);
+            final provider = previous ?? AIProvider(aiService, storageService);
             provider.updateUserId(auth.user?.id);
             return provider;
           },

@@ -6,6 +6,7 @@ import '../../providers/budget_provider.dart';
 import 'widgets/chat_message_list.dart';
 import 'widgets/chat_input_field.dart';
 import 'widgets/suggested_questions_list.dart';
+import 'conversation_history_screen.dart';
 
 /// Perfin AI Assistant Tab - Conversational AI Interface
 /// Requirements: 6.1-6.10
@@ -72,14 +73,46 @@ class _CopilotScreenState extends State<CopilotScreen> {
                       letterSpacing: -1,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    iconSize: 24,
-                    color: const Color(0xFF666666),
-                    onPressed: () {
-                      _showClearHistoryDialog();
-                    },
-                    tooltip: 'Clear chat history',
+                  Row(
+                    children: [
+                      // New conversation button
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        iconSize: 24,
+                        color: const Color(0xFF666666),
+                        onPressed: () {
+                          context.read<AIProvider>().createNewConversation();
+                        },
+                        tooltip: 'New conversation',
+                      ),
+                      const SizedBox(width: 8),
+                      // Conversation history button
+                      IconButton(
+                        icon: const Icon(Icons.history),
+                        iconSize: 24,
+                        color: const Color(0xFF666666),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ConversationHistoryScreen(),
+                            ),
+                          );
+                        },
+                        tooltip: 'Conversation history',
+                      ),
+                      const SizedBox(width: 8),
+                      // Clear current conversation button
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        iconSize: 24,
+                        color: const Color(0xFF666666),
+                        onPressed: () {
+                          _showClearHistoryDialog();
+                        },
+                        tooltip: 'Clear current conversation',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -126,24 +159,48 @@ class _CopilotScreenState extends State<CopilotScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Chat History'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Clear Chat History',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: const Text(
-          'Are you sure you want to clear all chat messages? This action cannot be undone.',
+          'Are you sure you want to clear this conversation? This action cannot be undone.',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF666666),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               context.read<AIProvider>().clearChatHistory();
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+            child: const Text(
+              'Clear',
+              style: TextStyle(
+                color: Color(0xFFFF3B30),
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            child: const Text('Clear'),
           ),
         ],
       ),

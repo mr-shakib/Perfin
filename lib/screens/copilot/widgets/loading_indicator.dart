@@ -36,7 +36,7 @@ class _LoadingIndicatorState extends State<LoadingIndicator>
         constraints: const BoxConstraints(maxWidth: 80),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: const Color(0xFFFAFAFA),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),

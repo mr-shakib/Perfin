@@ -40,42 +40,58 @@ class SuggestedQuestionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Welcome message
-        const Text(
-          '👋',
-          style: TextStyle(fontSize: 48),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Welcome to Perfin',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'I\'m your AI financial assistant. Ask me anything about your finances. I can help you understand your spending, track your budget, and plan for your goals.',
-          style: TextStyle(
-            fontSize: 15,
-            color: Color(0xFF666666),
-            height: 1.5,
-          ),
+        const SizedBox(height: 20),
+        
+        // Perfin AI image
+        Image.asset(
+          'assets/images/perfin_ai.png',
+          width: 180,
+          height: 180,
+          fit: BoxFit.contain,
         ),
         
         const SizedBox(height: 32),
         
-        // Suggested questions label
+        // Welcome message
         const Text(
-          'Try asking:',
+          'Meet Perfin',
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF999999),
-            letterSpacing: 0.5,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+            letterSpacing: -0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Your AI financial assistant. Ask me anything about your spending, budgets, and financial goals.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xFF666666),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        
+        const SizedBox(height: 40),
+        
+        // Suggested questions label
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Try asking:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF999999),
+              letterSpacing: 0.5,
+            ),
           ),
         ),
         
@@ -115,7 +131,7 @@ class SuggestedQuestionsList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: const Color(0xFFFAFAFA),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE5E5E5),
@@ -136,7 +152,7 @@ class SuggestedQuestionsList extends StatelessWidget {
                 question,
                 style: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF1A1A1A),
                   height: 1.3,
                 ),

@@ -59,7 +59,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: SafeArea(
         top: false,
         child: Row(
@@ -69,12 +69,16 @@ class _ChatInputFieldState extends State<ChatInputField> {
             Expanded(
               child: Container(
                 constraints: const BoxConstraints(
-                  minHeight: 40,
+                  minHeight: 44,
                   maxHeight: 120,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(20),
+                  color: const Color(0xFFFAFAFA),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: const Color(0xFFE5E5E5),
+                    width: 1,
+                  ),
                 ),
                 child: TextField(
                   controller: widget.controller,
@@ -89,8 +93,8 @@ class _ChatInputFieldState extends State<ChatInputField> {
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+                      horizontal: 18,
+                      vertical: 12,
                     ),
                     counterText: '',
                   ),
@@ -109,19 +113,23 @@ class _ChatInputFieldState extends State<ChatInputField> {
               ),
             ),
             
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             
             // Send button
             GestureDetector(
               onTap: _hasText ? _handleSend : null,
               child: Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: _hasText 
                       ? const Color(0xFF1A1A1A) 
-                      : const Color(0xFFE5E5E5),
+                      : const Color(0xFFFAFAFA),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFE5E5E5),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(
                   Icons.arrow_upward,

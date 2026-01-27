@@ -4,16 +4,19 @@ import '../models/spending_prediction.dart';
 import '../models/spending_pattern.dart';
 import '../models/recurring_expense.dart';
 import '../models/chat_message.dart';
+import '../models/conversation.dart';
 import '../models/goal.dart';
 import '../models/goal_feasibility_analysis.dart';
 import '../models/goal_prioritization.dart';
 import '../services/ai_service.dart';
+import '../services/storage_service.dart';
 import 'transaction_provider.dart';
 
 /// Provider managing AI-powered insights and predictions
 /// Uses ChangeNotifier to notify listeners of state changes
 class AIProvider extends ChangeNotifier {
   final AIService _aiService;
+  final StorageService _storageService;
   String? _userId;
 
   // Private state
@@ -21,20 +24,42 @@ class AIProvider extends ChangeNotifier {
   SpendingPrediction? _currentPrediction;
   List<SpendingPattern> _patterns = [];
   List<RecurringExpense> _recurringExpenses = [];
-  List<ChatMessage> _chatHistory = [];
+  List<Conversation> _conversations = [];
+  String? _currentConversationId;
   GoalFeasibilityAnalysis? _currentFeasibilityAnalysis;
   GoalPrioritization? _currentPrioritization;
   LoadingState _state = LoadingState.idle;
   String? _errorMessage;
 
-  AIProvider(this._aiService);
+  AIProvider(this._aiService, this._storageService) {
+    _loadConversations();
+  }
 
   // Public getters
   AISummary? get currentSummary => _currentSummary;
   SpendingPrediction? get currentPrediction => _currentPrediction;
   List<SpendingPattern> get patterns => List.unmodifiable(_patterns);
   List<RecurringExpense> get recurringExpenses => List.unmodifiable(_recurringExpenses);
-  List<ChatMessage> get chatHistory => List.unmodifiable(_chatHistory);
+  List<Conversation> get conversations => List.unmodifiable(_conversations);
+  String? get currentConversationId => _currentConversationId;
+  
+  /// Get current conversation's chat history
+  List<ChatMessage> get chatHistory {
+    if (_currentConversationId == null) return [];
+    final conversation = _conversations.firstWhere(
+      (c) => c.id == _currentConversationId,
+      orElse: () => Conversation(
+        id: '',
+        userId: _userId ?? '',
+        title: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        messages: [],
+      ),
+    );
+    return List.unmodifiable(conversation.messages);
+  }
+  
   GoalFeasibilityAnalysis? get currentFeasibilityAnalysis => _currentFeasibilityAnalysis;
   GoalPrioritization? get currentPrioritization => _currentPrioritization;
   LoadingState get state => _state;
@@ -49,11 +74,107 @@ class AIProvider extends ChangeNotifier {
       _currentPrediction = null;
       _patterns = [];
       _recurringExpenses = [];
-      _chatHistory = [];
+      _conversations = [];
+      _currentConversationId = null;
       _state = LoadingState.idle;
       _errorMessage = null;
       notifyListeners();
+    } else {
+      // Load conversations for the new user
+      _loadConversations();
     }
+  }
+
+  /// Load all conversations from storage
+  Future<void> _loadConversations() async {
+    if (_userId == null) return;
+
+    try {
+      final key = 'conversations_$_userId';
+      final storedConversations = await _storageService.load<List<dynamic>>(key);
+      
+      if (storedConversations != null) {
+        _conversations = storedConversations
+            .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
+            .toList();
+        
+        // Sort by updated date (most recent first)
+        _conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        
+        // Set current conversation to the most recent one
+        if (_conversations.isNotEmpty) {
+          _currentConversationId = _conversations.first.id;
+        }
+        
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Failed to load conversations: $e');
+    }
+  }
+
+  /// Save all conversations to storage
+  Future<void> _saveConversations() async {
+    if (_userId == null) return;
+
+    try {
+      final key = 'conversations_$_userId';
+      final jsonConversations = _conversations.map((c) => c.toJson()).toList();
+      await _storageService.save(key, jsonConversations);
+    } catch (e) {
+      debugPrint('Failed to save conversations: $e');
+    }
+  }
+
+  /// Create a new conversation
+  void createNewConversation() {
+    if (_userId == null) return;
+
+    final newConversation = Conversation(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: _userId!,
+      title: 'New Conversation',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      messages: [],
+    );
+
+    _conversations.insert(0, newConversation);
+    _currentConversationId = newConversation.id;
+    _saveConversations();
+    notifyListeners();
+  }
+
+  /// Switch to a different conversation
+  void switchConversation(String conversationId) {
+    _currentConversationId = conversationId;
+    notifyListeners();
+  }
+
+  /// Rename a conversation
+  void renameConversation(String conversationId, String newTitle) {
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1) {
+      _conversations[index] = _conversations[index].copyWith(
+        title: newTitle,
+        updatedAt: DateTime.now(),
+      );
+      _saveConversations();
+      notifyListeners();
+    }
+  }
+
+  /// Delete a conversation
+  void deleteConversation(String conversationId) {
+    _conversations.removeWhere((c) => c.id == conversationId);
+    
+    // If we deleted the current conversation, switch to another one
+    if (_currentConversationId == conversationId) {
+      _currentConversationId = _conversations.isNotEmpty ? _conversations.first.id : null;
+    }
+    
+    _saveConversations();
+    notifyListeners();
   }
 
   /// Generate financial summary for a date range
@@ -186,7 +307,15 @@ class AIProvider extends ChangeNotifier {
       return;
     }
 
-    // Add user message to history
+    // Create new conversation if none exists
+    if (_currentConversationId == null || _conversations.isEmpty) {
+      createNewConversation();
+    }
+
+    final conversationIndex = _conversations.indexWhere((c) => c.id == _currentConversationId);
+    if (conversationIndex == -1) return;
+
+    // Add user message to current conversation
     final userMessage = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userId: _userId!,
@@ -194,7 +323,23 @@ class AIProvider extends ChangeNotifier {
       role: MessageRole.user,
       timestamp: DateTime.now(),
     );
-    _chatHistory.add(userMessage);
+
+    final updatedMessages = List<ChatMessage>.from(_conversations[conversationIndex].messages)
+      ..add(userMessage);
+
+    // Update conversation title if it's the first message
+    String title = _conversations[conversationIndex].title;
+    if (updatedMessages.length == 1 || title == 'New Conversation') {
+      title = Conversation.generateTitle(updatedMessages);
+    }
+
+    _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+      messages: updatedMessages,
+      title: title,
+      updatedAt: DateTime.now(),
+    );
+
+    await _saveConversations();
     notifyListeners();
 
     _state = LoadingState.loading;
@@ -205,10 +350,10 @@ class AIProvider extends ChangeNotifier {
       final response = await _aiService.processCopilotQuery(
         userId: _userId!,
         query: query,
-        conversationHistory: _chatHistory,
+        conversationHistory: updatedMessages,
       );
 
-      // Add assistant response to history
+      // Add assistant response to conversation
       final assistantMessage = ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: _userId!,
@@ -221,7 +366,20 @@ class AIProvider extends ChangeNotifier {
           'calculations': response.calculations,
         },
       );
-      _chatHistory.add(assistantMessage);
+
+      final finalMessages = List<ChatMessage>.from(updatedMessages)
+        ..add(assistantMessage);
+
+      _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+        messages: finalMessages,
+        updatedAt: DateTime.now(),
+      );
+
+      // Move conversation to top of list
+      final conversation = _conversations.removeAt(conversationIndex);
+      _conversations.insert(0, conversation);
+
+      await _saveConversations();
 
       _state = LoadingState.loaded;
       _errorMessage = null;
@@ -238,16 +396,34 @@ class AIProvider extends ChangeNotifier {
         role: MessageRole.assistant,
         timestamp: DateTime.now(),
       );
-      _chatHistory.add(errorMessage);
-      
+
+      final errorMessages = List<ChatMessage>.from(_conversations[conversationIndex].messages)
+        ..add(errorMessage);
+
+      _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+        messages: errorMessages,
+        updatedAt: DateTime.now(),
+      );
+
+      await _saveConversations();
       notifyListeners();
     }
   }
 
-  /// Clear chat history
-  void clearChatHistory() {
-    _chatHistory = [];
-    notifyListeners();
+  /// Clear current conversation's chat history
+  Future<void> clearChatHistory() async {
+    if (_currentConversationId == null) return;
+
+    final index = _conversations.indexWhere((c) => c.id == _currentConversationId);
+    if (index != -1) {
+      _conversations[index] = _conversations[index].copyWith(
+        messages: [],
+        title: 'New Conversation',
+        updatedAt: DateTime.now(),
+      );
+      await _saveConversations();
+      notifyListeners();
+    }
   }
 
   /// Analyze goal feasibility
