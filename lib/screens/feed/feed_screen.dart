@@ -30,20 +30,30 @@ class _FeedScreenState extends State<FeedScreen> {
       backgroundColor: AppColors.creamLight,
       body: Consumer2<TransactionProvider, GoalProvider>(
         builder: (context, transactionProvider, goalProvider, _) {
-          // Get transactions sorted by date (most recent first)
-          final sortedTransactions = List.from(transactionProvider.transactions)
-            ..sort((a, b) => b.date.compareTo(a.date));
+          // Create a combined list of items with their dates
+          final List<MapEntry<DateTime, Widget>> items = [];
 
-          final List<Widget> pages = [
-            // Individual transaction cards (most recent first)
-            ...sortedTransactions.map((transaction) => 
-              TransactionDetailCard(transaction: transaction)
-            ),
-            // Individual goal cards with progress
-            ...goalProvider.goals.map((goal) => 
-              GoalDetailCard(goal: goal)
-            ),
-          ];
+          // Add transactions with their dates
+          for (final transaction in transactionProvider.transactions) {
+            items.add(MapEntry(
+              transaction.date,
+              TransactionDetailCard(transaction: transaction),
+            ));
+          }
+
+          // Add goals with their creation/update dates
+          for (final goal in goalProvider.goals) {
+            items.add(MapEntry(
+              goal.createdAt,
+              GoalDetailCard(goal: goal),
+            ));
+          }
+
+          // Sort all items by date (most recent first)
+          items.sort((a, b) => b.key.compareTo(a.key));
+
+          // Extract just the widgets
+          final List<Widget> pages = items.map((item) => item.value).toList();
 
           if (pages.isEmpty) {
             return Center(

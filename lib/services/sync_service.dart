@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/sync_operation.dart';
 import '../models/sync_result.dart';
 import 'storage_service.dart';
@@ -8,6 +10,7 @@ import 'storage_service.dart';
 /// Manages sync queue and handles retry logic with exponential backoff
 class SyncService {
   final StorageService _storageService;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   static const String _syncQueueKey = 'sync_queue';
   static const String _lastSyncTimeKeyPrefix = 'last_sync_time_';
@@ -174,17 +177,117 @@ class SyncService {
 
   /// Attempt to sync a single operation
   /// Returns true if successful, false otherwise
-  /// In a real implementation, this would make API calls to Supabase
   Future<bool> _syncOperation(SyncOperation operation) async {
     try {
-      // TODO: Implement actual sync logic with Supabase
-      // For now, simulate sync with a delay
-      await Future.delayed(const Duration(milliseconds: 100));
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        debugPrint('No authenticated user, skipping sync');
+        return false;
+      }
 
-      // Simulate 80% success rate for testing
-      // In production, this would be actual API calls
-      return Random().nextDouble() > 0.2;
+      switch (operation.entityType) {
+        case 'transaction':
+          return await _syncTransaction(operation, userId);
+        case 'budget':
+          return await _syncBudget(operation, userId);
+        case 'goal':
+          return await _syncGoal(operation, userId);
+        default:
+          debugPrint('Unknown entity type: ${operation.entityType}');
+          return false;
+      }
     } catch (e) {
+      debugPrint('Sync operation failed: $e');
+      return false;
+    }
+  }
+
+  /// Sync transaction to Supabase
+  Future<bool> _syncTransaction(SyncOperation operation, String userId) async {
+    try {
+      final data = operation.data;
+      data['user_id'] = userId;
+
+      switch (operation.operationType) {
+        case 'create':
+          await _supabase.from('transactions').insert(data);
+          break;
+        case 'update':
+          await _supabase
+              .from('transactions')
+              .update(data)
+              .eq('id', operation.entityId);
+          break;
+        case 'delete':
+          await _supabase
+              .from('transactions')
+              .delete()
+              .eq('id', operation.entityId);
+          break;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Transaction sync failed: $e');
+      return false;
+    }
+  }
+
+  /// Sync budget to Supabase
+  Future<bool> _syncBudget(SyncOperation operation, String userId) async {
+    try {
+      final data = operation.data;
+      data['user_id'] = userId;
+
+      switch (operation.operationType) {
+        case 'create':
+          await _supabase.from('budgets').insert(data);
+          break;
+        case 'update':
+          await _supabase
+              .from('budgets')
+              .update(data)
+              .eq('id', operation.entityId);
+          break;
+        case 'delete':
+          await _supabase
+              .from('budgets')
+              .delete()
+              .eq('id', operation.entityId);
+          break;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Budget sync failed: $e');
+      return false;
+    }
+  }
+
+  /// Sync goal to Supabase
+  Future<bool> _syncGoal(SyncOperation operation, String userId) async {
+    try {
+      final data = operation.data;
+      data['user_id'] = userId;
+
+      switch (operation.operationType) {
+        case 'create':
+          await _supabase.from('goals').insert(data);
+          break;
+        case 'update':
+          await _supabase
+              .from('goals')
+              .update(data)
+              .eq('id', operation.entityId);
+          break;
+        case 'delete':
+          await _supabase
+              .from('goals')
+              .delete()
+              .eq('id', operation.entityId);
+          break;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Goal sync failed: $e');
       return false;
     }
   }
@@ -253,7 +356,7 @@ class SyncService {
       await _saveSyncQueue(activeQueue);
     } catch (e) {
       // Don't throw on cleanup failure
-      print('Failed to cleanup completed operations: ${e.toString()}');
+      debugPrint('Failed to cleanup completed operations: ${e.toString()}');
     }
   }
 
@@ -265,7 +368,7 @@ class SyncService {
       await _storageService.save(key, timestamp);
     } catch (e) {
       // Don't throw on timestamp update failure
-      print('Failed to update last sync time: ${e.toString()}');
+      debugPrint('Failed to update last sync time: ${e.toString()}');
     }
   }
 

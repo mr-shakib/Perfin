@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction.dart';
+import '../../../utils/currency_utils.dart';
 import 'package:intl/intl.dart';
 
 /// Full-screen Individual Transaction Detail Card
@@ -70,7 +71,7 @@ class TransactionDetailCard extends StatelessWidget {
 
               // Amount
               Text(
-                '${isIncome ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
+                '${isIncome ? '+' : '-'}${CurrencyUtils.format(transaction.amount)}',
                 style: TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.w700,

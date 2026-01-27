@@ -15,6 +15,8 @@ import 'services/insight_service.dart';
 import 'services/ai_service.dart';
 import 'services/notification_service.dart';
 import 'services/notification_helper.dart';
+import 'services/sync_service.dart';
+import 'models/sync_result.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
@@ -61,6 +63,9 @@ void main() async {
   final storageService = HiveStorageService();
   await storageService.init();
   
+  // Initialize sync service for cloud backup
+  final syncService = SyncService(storageService);
+  
   // Initialize services
   final authService = AuthService(storageService);
   final themeService = ThemeService(storageService);
@@ -90,6 +95,17 @@ void main() async {
     apiKey: aiApiKey,
   );
   
+  // Start background sync (will sync when user logs in)
+  syncService.processSyncQueue().catchError((e) {
+    debugPrint('Background sync failed: $e');
+    return SyncResult(
+      successCount: 0,
+      failureCount: 0,
+      failedOperationIds: [],
+      syncedAt: DateTime.now(),
+    );
+  });
+  
   runApp(MyApp(
     authService: authService,
     themeService: themeService,
@@ -101,6 +117,7 @@ void main() async {
     insightService: insightService,
     notificationService: notificationService,
     storageService: storageService,
+    syncService: syncService,
   ));
 }
 
@@ -115,6 +132,7 @@ class MyApp extends StatelessWidget {
   final InsightService insightService;
   final NotificationService notificationService;
   final HiveStorageService storageService;
+  final SyncService syncService;
 
   const MyApp({
     super.key,
@@ -128,6 +146,7 @@ class MyApp extends StatelessWidget {
     required this.insightService,
     required this.notificationService,
     required this.storageService,
+    required this.syncService,
   });
 
   @override

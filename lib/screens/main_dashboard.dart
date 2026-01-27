@@ -53,10 +53,10 @@ class MainDashboardState extends State<MainDashboard> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFDF0).withValues(alpha: 0.7),
+              color: const Color(0xFFFFFDF0).withValues(alpha: 0.4),
               border: Border(
                 top: BorderSide(
-                  color: const Color(0xFFE5E5E5).withValues(alpha: 0.3),
+                  color: const Color(0xFFE5E5E5).withValues(alpha: 0.2),
                   width: 0.5,
                 ),
               ),

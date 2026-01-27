@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../utils/currency_utils.dart';
 
 /// Financial Summary Card - Clean Minimal Design
 /// Requirements: 1.1-1.3
@@ -34,7 +35,7 @@ class FinancialSummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               
               Text(
-                '\$${currentBalance.toStringAsFixed(2)}',
+                CurrencyUtils.format(currentBalance),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 48,
@@ -85,7 +86,7 @@ class FinancialSummaryCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '\$${amount.toStringAsFixed(0)}',
+          CurrencyUtils.formatWhole(amount),
           style: TextStyle(
             color: color,
             fontSize: 24,

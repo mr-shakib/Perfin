@@ -1,4 +1,5 @@
 /// App-wide constants for the Personal Finance App
+library;
 
 // Transaction Categories
 class AppCategories {
@@ -22,6 +23,13 @@ class AppCategories {
     'Gift',
     'Other',
   ];
+}
+
+// Currency Settings
+class AppCurrency {
+  static const String symbol = '৳'; // BDT symbol
+  static const String code = 'BDT';
+  static const String name = 'Bangladeshi Taka';
 }
 
 // Storage Keys

@@ -60,155 +60,166 @@ class _CopilotScreenState extends State<CopilotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      body: Consumer<AIProvider>(
-        builder: (context, aiProvider, _) {
-          final hasMessages = aiProvider.chatHistory.isNotEmpty;
+      body: Stack(
+        children: [
+          // Main content
+          Consumer<AIProvider>(
+            builder: (context, aiProvider, _) {
+              final hasMessages = aiProvider.chatHistory.isNotEmpty;
 
-          return CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              // Header that scrolls away
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Perfin',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        Row(
+              return CustomScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  // Header that scrolls away
+                  SliverToBoxAdapter(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // New conversation button
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              iconSize: 24,
-                              color: const Color(0xFF666666),
-                              onPressed: () {
-                                context.read<AIProvider>().createNewConversation();
-                              },
-                              tooltip: 'New conversation',
+                            const Text(
+                              'Perfin',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1A1A1A),
+                                letterSpacing: -1,
+                              ),
                             ),
-                            const SizedBox(width: 8),
-                            // Conversation history button
-                            IconButton(
-                              icon: const Icon(Icons.history),
-                              iconSize: 24,
-                              color: const Color(0xFF666666),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ConversationHistoryScreen(),
-                                  ),
-                                );
-                              },
-                              tooltip: 'Conversation history',
-                            ),
-                            const SizedBox(width: 8),
-                            // Clear current conversation button
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              iconSize: 24,
-                              color: const Color(0xFF666666),
-                              onPressed: () {
-                                _showClearHistoryDialog();
-                              },
-                              tooltip: 'Clear current conversation',
+                            Row(
+                              children: [
+                                // New conversation button
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle_outline),
+                                  iconSize: 24,
+                                  color: const Color(0xFF666666),
+                                  onPressed: () {
+                                    context.read<AIProvider>().createNewConversation();
+                                  },
+                                  tooltip: 'New conversation',
+                                ),
+                                const SizedBox(width: 8),
+                                // Conversation history button
+                                IconButton(
+                                  icon: const Icon(Icons.history),
+                                  iconSize: 24,
+                                  color: const Color(0xFF666666),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ConversationHistoryScreen(),
+                                      ),
+                                    );
+                                  },
+                                  tooltip: 'Conversation history',
+                                ),
+                                const SizedBox(width: 8),
+                                // Clear current conversation button
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  iconSize: 24,
+                                  color: const Color(0xFF666666),
+                                  onPressed: () {
+                                    _showClearHistoryDialog();
+                                  },
+                                  tooltip: 'Clear current conversation',
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Chat content
-              if (!hasMessages)
-                SliverFillRemaining(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: SuggestedQuestionsList(
-                        onQuestionTap: _handleSuggestedQuestion,
                       ),
                     ),
                   ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 80),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index == aiProvider.chatHistory.length) {
-                          if (aiProvider.state == LoadingState.loading) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 16, left: 20, right: 20),
-                              child: LoadingIndicator(),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
 
-                        final message = aiProvider.chatHistory[index];
-                        final isUser = message.role == MessageRole.user;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
-                          child: Column(
-                            crossAxisAlignment: isUser 
-                                ? CrossAxisAlignment.end 
-                                : CrossAxisAlignment.start,
-                            children: [
-                              // Message bubble
-                              if (isUser)
-                                _buildUserMessage(message)
-                              else
-                                AIResponseCard(message: message),
-                              
-                              // Timestamp
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4, left: 8, right: 8),
-                                child: Text(
-                                  _formatTimestamp(message.timestamp),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF999999),
-                                  ),
-                                ),
-                              ),
-                            ],
+                  // Chat content
+                  if (!hasMessages)
+                    SliverFillRemaining(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: SuggestedQuestionsList(
+                            onQuestionTap: _handleSuggestedQuestion,
                           ),
-                        );
-                      },
-                      childCount: aiProvider.chatHistory.length + 
-                          (aiProvider.state == LoadingState.loading ? 1 : 0),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.only(
+                        bottom: 100 + MediaQuery.of(context).padding.bottom,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == aiProvider.chatHistory.length) {
+                              if (aiProvider.state == LoadingState.loading) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(top: 16, left: 20, right: 20),
+                                  child: LoadingIndicator(),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }
+
+                            final message = aiProvider.chatHistory[index];
+                            final isUser = message.role == MessageRole.user;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                              child: Column(
+                                crossAxisAlignment: isUser 
+                                    ? CrossAxisAlignment.end 
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  // Message bubble
+                                  if (isUser)
+                                    _buildUserMessage(message)
+                                  else
+                                    AIResponseCard(message: message),
+                                  
+                                  // Timestamp
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4, left: 8, right: 8),
+                                    child: Text(
+                                      _formatTimestamp(message.timestamp),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF999999),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          childCount: aiProvider.chatHistory.length + 
+                              (aiProvider.state == LoadingState.loading ? 1 : 0),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-      bottomSheet: Container(
-        color: AppColors.creamLight,
-        child: ChatInputField(
-          controller: _messageController,
-          onSend: _handleSendMessage,
-        ),
+                ],
+              );
+            },
+          ),
+          
+          // Input field positioned at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ChatInputField(
+              controller: _messageController,
+              onSend: _handleSendMessage,
+            ),
+          ),
+        ],
       ),
     );
   }

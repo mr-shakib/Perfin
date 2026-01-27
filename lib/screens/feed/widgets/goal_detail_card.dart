@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../utils/currency_utils.dart';
 
 /// Full-screen Individual Goal Detail Card with Progress
 class GoalDetailCard extends StatelessWidget {
@@ -179,7 +180,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '\$${goal.currentAmount.toStringAsFixed(0)}',
+                          CurrencyUtils.formatWhole(goal.currentAmount),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -204,7 +205,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '\$${goal.targetAmount.toStringAsFixed(0)}',
+                          CurrencyUtils.formatWhole(goal.targetAmount),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -229,7 +230,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '\$${remaining.toStringAsFixed(0)}',
+                          CurrencyUtils.formatWhole(remaining),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
