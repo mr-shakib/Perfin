@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
-import '../../../utils/currency_utils.dart';
+import '../../../providers/currency_provider.dart';
 
 /// Financial Summary Card - Clean Minimal Design
 /// Requirements: 1.1-1.3
@@ -10,8 +10,8 @@ class FinancialSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, transactionProvider, _) {
+    return Consumer2<TransactionProvider, CurrencyProvider>(
+      builder: (context, transactionProvider, currencyProvider, _) {
         final summary = transactionProvider.currentMonthSummary;
         final currentBalance = transactionProvider.currentBalance;
 
@@ -35,7 +35,7 @@ class FinancialSummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               
               Text(
-                CurrencyUtils.format(currentBalance),
+                currencyProvider.format(currentBalance),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 48,
@@ -53,6 +53,7 @@ class FinancialSummaryCard extends StatelessWidget {
                       'Income',
                       summary.totalIncome,
                       const Color(0xFF00C853),
+                      currencyProvider,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -61,6 +62,7 @@ class FinancialSummaryCard extends StatelessWidget {
                       'Expenses',
                       summary.totalExpense,
                       const Color(0xFFFF3B30),
+                      currencyProvider,
                     ),
                   ),
                 ],
@@ -72,7 +74,7 @@ class FinancialSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String label, double amount, Color color) {
+  Widget _buildStat(String label, double amount, Color color, CurrencyProvider currencyProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -86,7 +88,7 @@ class FinancialSummaryCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          CurrencyUtils.formatWhole(amount),
+          currencyProvider.formatWhole(amount),
           style: TextStyle(
             color: color,
             fontSize: 24,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction.dart';
-import '../../../utils/currency_utils.dart';
+import '../../../providers/currency_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 /// Full-screen Individual Transaction Detail Card
 class TransactionDetailCard extends StatelessWidget {
@@ -14,6 +15,7 @@ class TransactionDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
     final isIncome = transaction.type == TransactionType.income;
     final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
     final timeFormat = DateFormat('h:mm a');
@@ -71,7 +73,7 @@ class TransactionDetailCard extends StatelessWidget {
 
               // Amount
               Text(
-                '${isIncome ? '+' : '-'}${CurrencyUtils.format(transaction.amount)}',
+                '${isIncome ? '+' : '-'}${currencyProvider.format(transaction.amount)}',
                 style: TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.w700,

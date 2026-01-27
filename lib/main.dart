@@ -25,6 +25,7 @@ import 'providers/onboarding_provider.dart';
 import 'providers/ai_provider.dart';
 import 'providers/insight_provider.dart';
 import 'providers/goal_provider.dart';
+import 'providers/currency_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -156,6 +157,11 @@ class MyApp extends StatelessWidget {
         // ThemeProvider at root - independent of other providers
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(themeService),
+        ),
+        
+        // CurrencyProvider - independent of other providers
+        ChangeNotifierProvider(
+          create: (_) => CurrencyProvider(storageService),
         ),
         
         // OnboardingProvider - independent of other providers

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../utils/currency_utils.dart';
+import '../../../providers/currency_provider.dart';
+import 'package:provider/provider.dart';
 
 /// Full-screen Individual Goal Detail Card with Progress
 class GoalDetailCard extends StatelessWidget {
@@ -13,6 +14,7 @@ class GoalDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
     final progress = goal.targetAmount > 0
         ? (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0)
         : 0.0;
@@ -180,7 +182,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          CurrencyUtils.formatWhole(goal.currentAmount),
+                          currencyProvider.formatWhole(goal.currentAmount),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -205,7 +207,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          CurrencyUtils.formatWhole(goal.targetAmount),
+                          currencyProvider.formatWhole(goal.targetAmount),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -230,7 +232,7 @@ class GoalDetailCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          CurrencyUtils.formatWhole(remaining),
+                          currencyProvider.formatWhole(remaining),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,

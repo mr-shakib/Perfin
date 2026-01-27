@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../providers/currency_provider.dart';
 import '../budget_management_screen.dart';
 import '../category_management_screen.dart';
 import '../privacy_settings_screen.dart';
+import '../currency_settings_screen.dart';
 import 'data_export_dialog.dart';
 import 'account_deletion_dialog.dart';
 import '../../../theme/app_colors.dart';
+import 'package:provider/provider.dart';
 
 /// Settings list - Clean Minimal Design
 class SettingsList extends StatelessWidget {
@@ -21,104 +24,113 @@ class SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSettingItem(
-          context: context,
-          icon: Icons.palette_outlined,
-          title: 'Appearance',
-          subtitle: _getThemeLabel(themeProvider.themeMode),
-          onTap: () => _showThemeSelector(context),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.attach_money,
-          title: 'Currency',
-          subtitle: 'USD',
-          onTap: () {},
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.account_balance_wallet_outlined,
-          title: 'Manage Budgets',
-          subtitle: 'Set spending limits',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const BudgetManagementScreen(),
+    return Consumer<CurrencyProvider>(
+      builder: (context, currencyProvider, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSettingItem(
+              context: context,
+              icon: Icons.palette_outlined,
+              title: 'Appearance',
+              subtitle: _getThemeLabel(themeProvider.themeMode),
+              onTap: () => _showThemeSelector(context),
             ),
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.category_outlined,
-          title: 'Manage Categories',
-          subtitle: 'Organize transactions',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CategoryManagementScreen(),
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.attach_money,
+              title: 'Currency',
+              subtitle: '${currencyProvider.currentCurrency.code} (${currencyProvider.currentCurrency.symbol})',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CurrencySettingsScreen(),
+                ),
+              ),
             ),
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.privacy_tip_outlined,
-          title: 'Privacy Settings',
-          subtitle: 'Control your data',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PrivacySettingsScreen(),
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'Manage Budgets',
+              subtitle: 'Set spending limits',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BudgetManagementScreen(),
+                ),
+              ),
             ),
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.download_outlined,
-          title: 'Export Data',
-          subtitle: 'Download your data',
-          onTap: () => showDialog(
-            context: context,
-            builder: (context) => DataExportDialog(
-              userId: authProvider.user?.id ?? '',
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.category_outlined,
+              title: 'Manage Categories',
+              subtitle: 'Organize transactions',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CategoryManagementScreen(),
+                ),
+              ),
             ),
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        _buildSettingItem(
-          context: context,
-          icon: Icons.delete_forever_outlined,
-          title: 'Delete Account',
-          subtitle: 'Permanently delete',
-          onTap: () => showDialog(
-            context: context,
-            builder: (context) => AccountDeletionDialog(
-              userId: authProvider.user?.id ?? '',
-              authProvider: authProvider,
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.privacy_tip_outlined,
+              title: 'Privacy Settings',
+              subtitle: 'Control your data',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacySettingsScreen(),
+                ),
+              ),
             ),
-          ),
-          isDestructive: true,
-        ),
-      ],
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.download_outlined,
+              title: 'Export Data',
+              subtitle: 'Download your data',
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) => DataExportDialog(
+                  userId: authProvider.user?.id ?? '',
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            _buildSettingItem(
+              context: context,
+              icon: Icons.delete_forever_outlined,
+              title: 'Delete Account',
+              subtitle: 'Permanently delete',
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) => AccountDeletionDialog(
+                  userId: authProvider.user?.id ?? '',
+                  authProvider: authProvider,
+                ),
+              ),
+              isDestructive: true,
+            ),
+          ],
+        );
+      },
     );
   }
 

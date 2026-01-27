@@ -25,13 +25,6 @@ class AppCategories {
   ];
 }
 
-// Currency Settings
-class AppCurrency {
-  static const String symbol = '৳'; // BDT symbol
-  static const String code = 'BDT';
-  static const String name = 'Bangladeshi Taka';
-}
-
 // Storage Keys
 class StorageKeys {
   static const String userSession = 'user_session';
