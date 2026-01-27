@@ -42,6 +42,7 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.4
+  shared_preferences: ^2.3.3
   
   # Backend & Auth
   supabase_flutter: ^2.9.1
@@ -67,6 +68,9 @@ dependencies:
   
   # Markdown rendering
   flutter_markdown: ^0.7.4
+  
+  # Sharing
+  share_plus: ^10.1.2
   
 
 dev_dependencies:

@@ -22,6 +22,7 @@ import 'providers/budget_provider.dart';
 import 'providers/onboarding_provider.dart';
 import 'providers/ai_provider.dart';
 import 'providers/insight_provider.dart';
+import 'providers/goal_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -95,6 +96,7 @@ void main() async {
     transactionService: transactionService,
     budgetService: budgetService,
     onboardingService: onboardingService,
+    goalService: goalService,
     aiService: aiService,
     insightService: insightService,
     notificationService: notificationService,
@@ -107,6 +109,7 @@ class MyApp extends StatelessWidget {
   final TransactionService transactionService;
   final BudgetService budgetService;
   final OnboardingService onboardingService;
+  final GoalService goalService;
   final AIService aiService;
   final InsightService insightService;
   final NotificationService notificationService;
@@ -118,6 +121,7 @@ class MyApp extends StatelessWidget {
     required this.transactionService,
     required this.budgetService,
     required this.onboardingService,
+    required this.goalService,
     required this.aiService,
     required this.insightService,
     required this.notificationService,
@@ -179,6 +183,14 @@ class MyApp extends StatelessWidget {
             final provider = previous ?? InsightProvider(insightService);
             provider.updateUserId(auth.user?.id);
             return provider;
+          },
+        ),
+        
+        // GoalProvider depends on AuthProvider
+        ChangeNotifierProxyProvider<AuthProvider, GoalProvider>(
+          create: (_) => GoalProvider(goalService),
+          update: (_, auth, previous) {
+            return previous ?? GoalProvider(goalService);
           },
         ),
       ],

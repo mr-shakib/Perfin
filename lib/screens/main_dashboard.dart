@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
 import 'insights/insights_screen.dart';
 import 'copilot/copilot_screen.dart';
+import 'goals/goals_screen.dart';
+import 'profile/profile_screen.dart';
 
 /// Main Dashboard with bottom navigation
 /// Provides access to all main app tabs
@@ -24,8 +26,8 @@ class MainDashboardState extends State<MainDashboard> {
     HomeScreen(),
     InsightsScreen(),
     CopilotScreen(),
-    Placeholder(), // Goals - Coming soon
-    Placeholder(), // Profile - Coming soon
+    GoalsScreen(),
+    ProfileScreen(),
   ];
 
   /// Public method to switch tabs programmatically

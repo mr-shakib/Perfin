@@ -356,8 +356,8 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Test input handling
     - Test suggested questions
 
-- [ ] 8. Implement Goals Tab UI
-  - [ ] 8.1 Create GoalsScreen widget with layout
+- [x] 8. Implement Goals Tab UI
+  - [x] 8.1 Create GoalsScreen widget with layout
     - Set up tab structure
     - Create scrollable layout
     - Wire up GoalProvider, AIProvider
@@ -366,7 +366,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Create goal button
     - _Requirements: 9.1-9.12_
   
-  - [ ] 8.2 Implement GoalCard widget
+  - [x] 8.2 Implement GoalCard widget
     - Display goal name, target amount, current amount, deadline
     - Show progress bar
     - Calculate and display progress percentage
@@ -374,7 +374,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Support tap to view details
     - _Requirements: 9.1, 9.12_
   
-  - [ ] 8.3 Implement GoalDetailScreen widget
+  - [x] 8.3 Implement GoalDetailScreen widget
     - Full-screen view of goal details
     - Show all goal information
     - Show AI feasibility analysis
@@ -382,7 +382,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Actions: Update progress, Edit goal, Delete goal, Mark complete
     - _Requirements: 9.1-9.12, 10.1-10.10_
   
-  - [ ] 8.4 Implement CreateGoalForm widget
+  - [x] 8.4 Implement CreateGoalForm widget
     - Form fields: name, target amount, target date, current amount (optional), linked category (optional)
     - Validation: required fields, positive amounts, future dates
     - Save to GoalService on submit
@@ -393,19 +393,19 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Test past date rejection
     - Test zero/negative amount rejection
   
-  - [ ] 8.6 Implement GoalProgressChart widget
+  - [x] 8.6 Implement GoalProgressChart widget
     - Line chart showing progress over time
     - X-axis: time, Y-axis: saved amount
     - Show target line and actual progress line
     - _Requirements: 9.1-9.12_
   
-  - [ ] 8.7 Implement AIFeasibilityCard widget
+  - [x] 8.7 Implement AIFeasibilityCard widget
     - Display feasibility status
     - Show required monthly savings
     - Show spending reduction suggestions
     - _Requirements: 10.1-10.10_
   
-  - [ ] 8.8 Implement GoalPrioritizationCard widget
+  - [x] 8.8 Implement GoalPrioritizationCard widget
     - Display when multiple goals exist
     - Show recommended priority order
     - Show conflict warnings
@@ -416,8 +416,8 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Test goal state transitions
     - Test empty states
 
-- [ ] 9. Implement Profile Tab UI
-  - [ ] 9.1 Create ProfileScreen widget with layout
+- [x] 9. Implement Profile Tab UI
+  - [x] 9.1 Create ProfileScreen widget with layout
     - Set up tab structure
     - Create scrollable layout
     - Wire up AuthProvider, ThemeProvider, UserProvider
@@ -426,23 +426,23 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Logout button
     - _Requirements: 12.1-12.10_
   
-  - [ ] 9.2 Implement UserInfoCard widget
+  - [x] 9.2 Implement UserInfoCard widget
     - Display user name and email
     - Edit profile button
     - _Requirements: 12.1-12.2_
   
-  - [ ] 9.3 Implement EditProfileForm widget
+  - [x] 9.3 Implement EditProfileForm widget
     - Form fields: name, email
     - Validation: required fields, valid email format
     - Trigger email verification on email change
     - _Requirements: 12.3-12.4_
   
-  - [ ] 9.4 Implement SettingsSection widget
+  - [x] 9.4 Implement SettingsSection widget
     - Group related settings
     - Sections: Appearance, Preferences, Budgets & Categories, Data & Privacy
     - _Requirements: 12.1-12.10_
   
-  - [ ] 9.5 Implement CurrencySelector widget
+  - [x] 9.5 Implement CurrencySelector widget
     - Dropdown for currency selection
     - Options: USD, EUR, GBP, JPY, etc.
     - Trigger update all monetary displays on change
@@ -452,13 +452,13 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - **Property 32: Currency Preference Propagation**
     - **Validates: Requirements 15.4**
   
-  - [ ] 9.7 Implement ThemeSelector widget
+  - [x] 9.7 Implement ThemeSelector widget
     - Segmented control for theme selection
     - Options: Light, Dark, System
     - Trigger immediate theme change
     - _Requirements: 12.7-12.8_
   
-  - [ ] 9.8 Implement BudgetManagementScreen widget
+  - [x] 9.8 Implement BudgetManagementScreen widget
     - Full-screen view for managing budgets
     - List of budgets
     - Create budget button
@@ -466,7 +466,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - Delete budget action (with confirmation)
     - _Requirements: 13.1-13.7_
   
-  - [ ] 9.9 Implement CategoryManagementScreen widget
+  - [x] 9.9 Implement CategoryManagementScreen widget
     - Full-screen view for managing categories
     - List of categories
     - Create category button
@@ -480,7 +480,7 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - **Property 29: Category Deletion Requires Transaction Reassignment**
     - **Validates: Requirements 13.10**
   
-  - [ ] 9.11 Implement DataExportButton widget
+  - [x] 9.11 Implement DataExportButton widget
     - Button to trigger data export
     - Generate CSV file with all user data
     - Trigger file download or share sheet
@@ -490,13 +490,13 @@ This implementation plan breaks down the Perfin main app tabs and features into 
     - **Property 30: Data Export Completeness**
     - **Validates: Requirements 14.2**
   
-  - [ ] 9.13 Implement PrivacySettingsScreen widget
+  - [x] 9.13 Implement PrivacySettingsScreen widget
     - Full-screen view for privacy settings
     - Options: Enable/disable AI features, notification preferences
     - Update user preferences
     - _Requirements: 14.5-14.8_
   
-  - [ ] 9.14 Implement AccountDeletionButton widget
+  - [x] 9.14 Implement AccountDeletionButton widget
     - Button to delete account
     - Confirmation dialog
     - Explain data will be permanently deleted

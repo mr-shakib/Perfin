@@ -4,6 +4,9 @@ import '../models/spending_prediction.dart';
 import '../models/spending_pattern.dart';
 import '../models/recurring_expense.dart';
 import '../models/chat_message.dart';
+import '../models/goal.dart';
+import '../models/goal_feasibility_analysis.dart';
+import '../models/goal_prioritization.dart';
 import '../services/ai_service.dart';
 import 'transaction_provider.dart';
 
@@ -19,6 +22,8 @@ class AIProvider extends ChangeNotifier {
   List<SpendingPattern> _patterns = [];
   List<RecurringExpense> _recurringExpenses = [];
   List<ChatMessage> _chatHistory = [];
+  GoalFeasibilityAnalysis? _currentFeasibilityAnalysis;
+  GoalPrioritization? _currentPrioritization;
   LoadingState _state = LoadingState.idle;
   String? _errorMessage;
 
@@ -30,6 +35,8 @@ class AIProvider extends ChangeNotifier {
   List<SpendingPattern> get patterns => List.unmodifiable(_patterns);
   List<RecurringExpense> get recurringExpenses => List.unmodifiable(_recurringExpenses);
   List<ChatMessage> get chatHistory => List.unmodifiable(_chatHistory);
+  GoalFeasibilityAnalysis? get currentFeasibilityAnalysis => _currentFeasibilityAnalysis;
+  GoalPrioritization? get currentPrioritization => _currentPrioritization;
   LoadingState get state => _state;
   String? get errorMessage => _errorMessage;
 
@@ -241,5 +248,61 @@ class AIProvider extends ChangeNotifier {
   void clearChatHistory() {
     _chatHistory = [];
     notifyListeners();
+  }
+
+  /// Analyze goal feasibility
+  Future<void> analyzeGoalFeasibility(Goal goal) async {
+    if (_userId == null) {
+      _state = LoadingState.error;
+      _errorMessage = 'User not authenticated';
+      notifyListeners();
+      return;
+    }
+
+    _state = LoadingState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _currentFeasibilityAnalysis = await _aiService.analyzeGoalFeasibility(
+        userId: _userId!,
+        goal: goal,
+      );
+      _state = LoadingState.loaded;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      _state = LoadingState.error;
+      _errorMessage = 'Failed to analyze goal feasibility: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
+  /// Prioritize multiple goals
+  Future<void> prioritizeGoals(List<Goal> goals) async {
+    if (_userId == null) {
+      _state = LoadingState.error;
+      _errorMessage = 'User not authenticated';
+      notifyListeners();
+      return;
+    }
+
+    _state = LoadingState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _currentPrioritization = await _aiService.prioritizeGoals(
+        userId: _userId!,
+        goals: goals,
+      );
+      _state = LoadingState.loaded;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      _state = LoadingState.error;
+      _errorMessage = 'Failed to prioritize goals: ${e.toString()}';
+      notifyListeners();
+    }
   }
 }
