@@ -97,11 +97,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final authProvider = context.read<AuthProvider>();
     final onboardingProvider = context.read<OnboardingProvider>();
     
-    // Ensure providers are loaded
-    await Future.wait([
-      authProvider.restoreSession(),
-      onboardingProvider.loadPreferences(),
-    ]);
+    try {
+      // Ensure providers are loaded
+      await Future.wait([
+        authProvider.restoreSession(),
+        onboardingProvider.loadPreferences(),
+      ]);
+    } catch (e) {
+      // If there's a network error, continue anyway
+      debugPrint('Error during initialization: $e');
+    }
     
     // Wait for logo animation to complete
     await Future.delayed(const Duration(milliseconds: 500));

@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class SupabaseConfig {
   // Hardcoded fallback values for web builds (since .env doesn't work on web)
   static const String _fallbackUrl = 'https://qtsamrmwknmqghqfamho.supabase.co';
-  static const String _fallbackAnonKey = 'sb_publishable_M0v3oKrSotSrFn9QZ4h3iw_1zRXhOxP';
+  static const String _fallbackAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0c2Ftcm13a25tcWdocWZhbWhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MzgzNzcsImV4cCI6MjA4NTAxNDM3N30.ToyJiYtODl3leA7W-4eFVAxudbuJhg_2_rKHVM8zRrs';
 
   /// Get Supabase URL from environment
   static String get supabaseUrl {

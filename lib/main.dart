@@ -58,26 +58,45 @@ void main() async {
   debugPrint('All env keys: ${dotenv.env.keys.toList()}');
   debugPrint('===================================');
   
-  // Initialize Supabase
+  // Initialize Supabase (skip if credentials are invalid)
+  bool supabaseInitialized = false;
   try {
-    await Supabase.initialize(
-      url: SupabaseConfig.supabaseUrl,
-      anonKey: SupabaseConfig.supabaseAnonKey,
-    );
+    final supabaseUrl = SupabaseConfig.supabaseUrl;
+    final supabaseKey = SupabaseConfig.supabaseAnonKey;
+    
+    // Check if credentials look valid
+    if (supabaseUrl.contains('supabase.co') && supabaseKey.startsWith('eyJ')) {
+      // Add a small delay to help with DNS resolution on some devices
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseKey,
+      );
+      supabaseInitialized = true;
+      debugPrint('✓ Supabase initialized successfully');
+      debugPrint('  URL: $supabaseUrl');
+    } else {
+      debugPrint('⚠ Skipping Supabase - Invalid credentials detected');
+      debugPrint('  URL: $supabaseUrl');
+      debugPrint('  Key starts with: ${supabaseKey.substring(0, supabaseKey.length > 10 ? 10 : supabaseKey.length)}...');
+    }
   } catch (e) {
-    debugPrint('Warning: Supabase initialization failed: $e');
+    debugPrint('⚠ Supabase initialization failed: $e');
+    debugPrint('  This might be a network/DNS issue on the device');
   }
   
   // Initialize storage service
   final storageService = HiveStorageService();
   try {
     await storageService.init();
+    debugPrint('✓ Storage initialized successfully');
   } catch (e) {
-    debugPrint('Error initializing storage: $e');
+    debugPrint('✗ Error initializing storage: $e');
     // Continue anyway - app can still work with limited functionality
   }
   
-  // Initialize sync service for cloud backup
+  // Initialize sync service for cloud backup (only if Supabase is available)
   final syncService = SyncService(storageService);
   
   // Initialize services
@@ -109,16 +128,20 @@ void main() async {
     apiKey: aiApiKey,
   );
   
-  // Start background sync (will sync when user logs in)
-  syncService.processSyncQueue().catchError((e) {
-    debugPrint('Background sync failed: $e');
-    return SyncResult(
-      successCount: 0,
-      failureCount: 0,
-      failedOperationIds: [],
-      syncedAt: DateTime.now(),
-    );
-  });
+  // Start background sync only if Supabase is initialized
+  if (supabaseInitialized) {
+    syncService.processSyncQueue().catchError((e) {
+      debugPrint('Background sync failed: $e');
+      return SyncResult(
+        successCount: 0,
+        failureCount: 0,
+        failedOperationIds: [],
+        syncedAt: DateTime.now(),
+      );
+    });
+  } else {
+    debugPrint('⚠ Skipping background sync - Supabase not available');
+  }
   
   runApp(MyApp(
     authService: authService,

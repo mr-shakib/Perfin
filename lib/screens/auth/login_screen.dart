@@ -42,28 +42,106 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
     
-    await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    if (!mounted) return;
-    
-    // Hide loading indicator
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    
-    if (authProvider.isAuthenticated) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else if (authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-        ),
+    try {
+      await authProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
+
+      if (!mounted) return;
+      
+      // Hide loading indicator
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      
+      if (authProvider.isAuthenticated) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else if (authProvider.errorMessage != null) {
+        _showErrorWithOfflineOption(authProvider.errorMessage!);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      // Hide loading indicator
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      
+      // Check if it's a network error
+      if (e.toString().contains('SocketException') || 
+          e.toString().contains('Failed host lookup')) {
+        _showOfflineDialog();
+      } else {
+        _showErrorWithOfflineOption(e.toString());
+      }
     }
+  }
+
+  void _showErrorWithOfflineOption(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Continue Offline',
+          textColor: Colors.white,
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showOfflineDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'No Internet Connection',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: const Text(
+          'Unable to connect to the server. You can continue using the app offline with limited features, or check your internet connection and try again.',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF666666),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Try Again',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/dashboard');
+            },
+            child: const Text(
+              'Continue Offline',
+              style: TextStyle(
+                color: Color(0xFF1A1A1A),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
