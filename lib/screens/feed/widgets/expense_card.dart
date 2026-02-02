@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../models/transaction.dart';
 
 /// Full-screen Expense Card
@@ -9,8 +10,8 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, transactionProvider, _) {
+    return Consumer2<TransactionProvider, CurrencyProvider>(
+      builder: (context, transactionProvider, currencyProvider, _) {
         final expenses = transactionProvider.transactions
             .where((t) => t.type == TransactionType.expense)
             .toList();
@@ -73,7 +74,7 @@ class ExpenseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '\$${totalExpense.toStringAsFixed(2)}',
+                    currencyProvider.format(totalExpense),
                     style: const TextStyle(
                       fontSize: 72,
                       fontWeight: FontWeight.w700,
@@ -104,7 +105,7 @@ class ExpenseCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '\$${monthlyExpense.toStringAsFixed(2)}',
+                          currencyProvider.format(monthlyExpense),
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.w700,

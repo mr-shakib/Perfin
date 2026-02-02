@@ -18,6 +18,9 @@ import 'package:perfin/services/onboarding_service.dart';
 import 'package:perfin/services/goal_service.dart';
 import 'package:perfin/services/insight_service.dart';
 import 'package:perfin/services/ai_service.dart';
+import 'package:perfin/services/notification_service.dart';
+import 'package:perfin/services/notification_helper.dart';
+import 'package:perfin/services/sync_service.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
@@ -32,6 +35,9 @@ void main() {
     final onboardingService = OnboardingService(storageService);
     final goalService = GoalService(storageService, transactionService);
     final insightService = InsightService(transactionService);
+    final notificationHelper = NotificationHelper();
+    final notificationService = NotificationService(storageService, notificationHelper);
+    final syncService = SyncService(storageService);
     final aiService = AIService(
       transactionService: transactionService,
       budgetService: budgetService,
@@ -49,6 +55,10 @@ void main() {
       onboardingService: onboardingService,
       aiService: aiService,
       insightService: insightService,
+      goalService: goalService,
+      notificationService: notificationService,
+      storageService: storageService,
+      syncService: syncService,
     ));
 
     // Verify that our counter starts at 0.

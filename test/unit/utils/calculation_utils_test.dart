@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:perfin/models/transaction.dart';
-import 'package:perfin/models/monthly_summary.dart';
 import 'package:perfin/utils/calculation_utils.dart';
 
 void main() {

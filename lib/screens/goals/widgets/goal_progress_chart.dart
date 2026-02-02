@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import '../../../models/goal.dart';
+import '../../../providers/currency_provider.dart';
 
 /// Line chart showing goal progress over time
 /// Requirements: 9.1-9.12
@@ -14,6 +16,8 @@ class GoalProgressChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<CurrencyProvider>(
+      builder: (context, currencyProvider, _) {
     // Generate progress data points
     final progressData = _generateProgressData();
 
@@ -82,7 +86,7 @@ class GoalProgressChart extends StatelessWidget {
                       reservedSize: 50,
                       interval: goal.targetAmount / 4,
                       getTitlesWidget: (value, meta) {
-                        return _buildLeftTitle(value);
+                        return _buildLeftTitle(value, currencyProvider);
                       },
                     ),
                   ),
@@ -142,7 +146,7 @@ class GoalProgressChart extends StatelessWidget {
                         if (spot.barIndex == 1) {
                           // Only show tooltip for actual progress line
                           return LineTooltipItem(
-                            '\$${spot.y.toStringAsFixed(0)}',
+                            currencyProvider.formatWhole(spot.y),
                             const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -176,6 +180,8 @@ class GoalProgressChart extends StatelessWidget {
           ),
         ],
       ),
+    );
+      },
     );
   }
 
@@ -229,11 +235,11 @@ class GoalProgressChart extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _buildLeftTitle(double value) {
+  Widget _buildLeftTitle(double value, CurrencyProvider currencyProvider) {
     if (value == 0) {
-      return const Text(
-        '\$0',
-        style: TextStyle(
+      return Text(
+        '${currencyProvider.currentCurrency.symbol}0',
+        style: const TextStyle(
           fontSize: 10,
           color: Color(0xFF666666),
         ),
@@ -243,7 +249,7 @@ class GoalProgressChart extends StatelessWidget {
     final k = value / 1000;
     if (k >= 1) {
       return Text(
-        '\$${k.toStringAsFixed(0)}k',
+        '${currencyProvider.currentCurrency.symbol}${k.toStringAsFixed(0)}k',
         style: const TextStyle(
           fontSize: 10,
           color: Color(0xFF666666),
@@ -252,7 +258,7 @@ class GoalProgressChart extends StatelessWidget {
     }
     
     return Text(
-      '\$${value.toStringAsFixed(0)}',
+      currencyProvider.formatWhole(value),
       style: const TextStyle(
         fontSize: 10,
         color: Color(0xFF666666),

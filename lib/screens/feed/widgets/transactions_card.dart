@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../models/transaction.dart';
 import 'package:intl/intl.dart';
 
@@ -10,8 +11,8 @@ class TransactionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, transactionProvider, _) {
+    return Consumer2<TransactionProvider, CurrencyProvider>(
+      builder: (context, transactionProvider, currencyProvider, _) {
         final transactions = transactionProvider.transactions;
         final recentTransactions = transactions.take(10).toList();
 
@@ -82,7 +83,7 @@ class TransactionsCard extends StatelessWidget {
                           itemCount: recentTransactions.length,
                           itemBuilder: (context, index) {
                             final transaction = recentTransactions[index];
-                            return _buildTransactionItem(transaction);
+                            return _buildTransactionItem(transaction, currencyProvider);
                           },
                         ),
                 ),
@@ -114,7 +115,7 @@ class TransactionsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(Transaction transaction) {
+  Widget _buildTransactionItem(Transaction transaction, CurrencyProvider currencyProvider) {
     final isIncome = transaction.type == TransactionType.income;
     final dateFormat = DateFormat('MMM dd, yyyy');
 
@@ -169,7 +170,7 @@ class TransactionsCard extends StatelessWidget {
             ),
           ),
           Text(
-            '${isIncome ? '+' : '-'}\$${transaction.amount.toStringAsFixed(0)}',
+            '${isIncome ? '+' : '-'}${currencyProvider.formatWhole(transaction.amount)}',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,

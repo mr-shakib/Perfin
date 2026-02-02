@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/currency_provider.dart';
 import '../../models/transaction.dart';
 import '../../theme/app_colors.dart';
 
@@ -177,37 +178,39 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 32),
 
             // Amount field
-            TextFormField(
-              controller: _amountController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A1A),
-              ),
-              decoration: InputDecoration(
-                prefixText: '\$',
-                prefixStyle: const TextStyle(
+            Consumer<CurrencyProvider>(
+              builder: (context, currencyProvider, _) => TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                style: const TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1A1A1A),
                 ),
-                hintText: '0.00',
-                border: InputBorder.none,
+                decoration: InputDecoration(
+                  prefixText: currencyProvider.currentCurrency.symbol,
+                  prefixStyle: const TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                  hintText: '0.00',
+                  border: InputBorder.none,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+                  final amount = double.tryParse(value);
+                  if (amount == null || amount <= 0) {
+                    return 'Please enter a valid amount';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an amount';
-                }
-                final amount = double.tryParse(value);
-                if (amount == null || amount <= 0) {
-                  return 'Please enter a valid amount';
-                }
-                return null;
-              },
             ),
 
             const SizedBox(height: 32),

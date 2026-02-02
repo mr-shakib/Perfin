@@ -7,6 +7,7 @@ import '../../providers/goal_provider.dart' as goal_provider;
 import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/currency_provider.dart';
 import '../../providers/transaction_provider.dart' show LoadingState;
 import '../../models/goal.dart';
 import '../../models/transaction.dart';
@@ -57,6 +58,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   void _showAddMoneyDialog(Goal goal) {
     final controller = TextEditingController();
+    final currencyProvider = context.read<CurrencyProvider>();
 
     showDialog(
       context: context,
@@ -67,15 +69,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Current: \$${_formatAmount(goal.currentAmount)}',
+              'Current: ${currencyProvider.format(goal.currentAmount)}',
               style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount to Add',
-                prefixText: '\$ ',
+                prefixText: '${currencyProvider.currentCurrency.symbol} ',
                 border: OutlineInputBorder(),
                 helperText: 'This will be recorded as an expense transaction',
               ),
@@ -179,6 +181,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final controller = TextEditingController(
       text: goal.currentAmount.toStringAsFixed(2),
     );
+    final currencyProvider = context.read<CurrencyProvider>();
 
     showDialog(
       context: context,
@@ -195,9 +198,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Current Amount',
-                prefixText: '\$ ',
+                prefixText: '${currencyProvider.currentCurrency.symbol} ',
                 border: OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -398,8 +401,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           ),
         ],
       ),
-      body: Consumer3<goal_provider.GoalProvider, AIProvider, AuthProvider>(
-        builder: (context, goalProvider, aiProvider, authProvider, _) {
+      body: Consumer4<goal_provider.GoalProvider, AIProvider, AuthProvider, CurrencyProvider>(
+        builder: (context, goalProvider, aiProvider, authProvider, currencyProvider, _) {
           final goal = goalProvider.getGoalById(widget.goalId);
 
           if (goal == null) {
@@ -412,7 +415,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Goal header
-                _buildGoalHeader(goal),
+                _buildGoalHeader(goal, currencyProvider),
 
                 const SizedBox(height: 24),
 
@@ -449,7 +452,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildGoalHeader(Goal goal) {
+  Widget _buildGoalHeader(Goal goal, CurrencyProvider currencyProvider) {
     final progressPercentage = goal.progressPercentage.clamp(0.0, 100.0);
     final daysRemaining = goal.daysRemaining;
 
@@ -489,7 +492,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '\$${_formatAmount(goal.currentAmount)}',
+                        currencyProvider.format(goal.currentAmount),
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w700,
@@ -498,7 +501,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'of \$${_formatAmount(goal.targetAmount)}',
+                        'of ${currencyProvider.format(goal.targetAmount)}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF666666),
@@ -603,7 +606,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             ),
             _buildInfoChip(
               icon: Icons.savings_outlined,
-              label: '\$${_formatAmount(goal.requiredMonthlySavings)}/month',
+              label: '${currencyProvider.formatWhole(goal.requiredMonthlySavings)}/month',
               sublabel: 'Required savings',
             ),
           ],
@@ -698,10 +701,5 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  String _formatAmount(double amount) {
-    if (amount >= 1000) {
-      return NumberFormat('#,##0').format(amount);
-    }
-    return amount.toStringAsFixed(0);
-  }
+
 }

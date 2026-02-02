@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/budget_provider.dart';
+import '../../providers/currency_provider.dart';
 
 /// Full-screen view for managing budgets
 /// Allows creating, editing, and deleting category budgets
@@ -180,10 +181,10 @@ class _BudgetManagementScreenState extends State<BudgetManagementScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: amountController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Monthly Limit',
                   border: OutlineInputBorder(),
-                  prefixText: '\$ ',
+                  prefixText: '${context.read<CurrencyProvider>().currentCurrency.symbol} ',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
@@ -250,10 +251,10 @@ class _BudgetManagementScreenState extends State<BudgetManagementScreen> {
           key: formKey,
           child: TextFormField(
             controller: amountController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Monthly Limit',
               border: OutlineInputBorder(),
-              prefixText: '\$ ',
+              prefixText: '${context.read<CurrencyProvider>().currentCurrency.symbol} ',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [

@@ -45,7 +45,7 @@ void main() {
           create: (_) => BudgetProvider(budgetService),
         ),
         ChangeNotifierProvider(
-          create: (_) => AIProvider(aiService),
+          create: (_) => AIProvider(aiService, HiveStorageService()),
         ),
       ],
       child: const MaterialApp(

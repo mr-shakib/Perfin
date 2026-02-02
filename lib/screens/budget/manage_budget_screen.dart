@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/budget_provider.dart';
-import '../../providers/transaction_provider.dart';
-import '../../theme/app_colors.dart';
+import '../../providers/transaction_provider.dart';import '../../providers/currency_provider.dart';import '../../theme/app_colors.dart';
 
 /// Manage Budget Screen
 /// Allows users to set monthly budget and category budgets
@@ -288,7 +287,7 @@ class _ManageBudgetScreenState extends State<ManageBudgetScreen> {
         FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
       ],
       decoration: InputDecoration(
-        prefixText: '\$ ',
+        prefixText: '${context.read<CurrencyProvider>().currentCurrency.symbol} ',
         hintText: hint,
         filled: true,
         fillColor: AppColors.creamLight,

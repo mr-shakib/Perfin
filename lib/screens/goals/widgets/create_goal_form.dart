@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/goal_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/currency_provider.dart';
 
 /// Form for creating new goals
 /// Requirements: 9.2-9.6
@@ -200,23 +201,24 @@ class _CreateGoalFormState extends State<CreateGoalForm> {
                     const SizedBox(height: 16),
 
                     // Target amount field
-                    TextFormField(
-                      controller: _targetAmountController,
-                      decoration: InputDecoration(
-                        labelText: 'Target Amount *',
-                        hintText: '0.00',
-                        prefixText: '\$ ',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF1A1A1A),
-                            width: 2,
+                    Consumer<CurrencyProvider>(
+                      builder: (context, currencyProvider, _) => TextFormField(
+                        controller: _targetAmountController,
+                        decoration: InputDecoration(
+                          labelText: 'Target Amount *',
+                          hintText: '0.00',
+                          prefixText: '${currencyProvider.currentCurrency.symbol} ',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1A1A1A),
+                              width: 2,
+                            ),
                           ),
                         ),
-                      ),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -225,41 +227,43 @@ class _CreateGoalFormState extends State<CreateGoalForm> {
                           RegExp(r'^\d+\.?\d{0,2}'),
                         ),
                       ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a target amount';
-                        }
-                        final amount = double.tryParse(value);
-                        if (amount == null) {
-                          return 'Please enter a valid amount';
-                        }
-                        if (amount <= 0) {
-                          return 'Amount must be greater than zero';
-                        }
-                        return null;
-                      },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a target amount';
+                          }
+                          final amount = double.tryParse(value);
+                          if (amount == null) {
+                            return 'Please enter a valid amount';
+                          }
+                          if (amount <= 0) {
+                            return 'Amount must be greater than zero';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
 
                     const SizedBox(height: 16),
 
                     // Current amount field (optional)
-                    TextFormField(
-                      controller: _currentAmountController,
-                      decoration: InputDecoration(
-                        labelText: 'Current Amount (Optional)',
-                        hintText: '0.00',
-                        prefixText: '\$ ',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF1A1A1A),
-                            width: 2,
+                    Consumer<CurrencyProvider>(
+                      builder: (context, currencyProvider, _) => TextFormField(
+                        controller: _currentAmountController,
+                        decoration: InputDecoration(
+                          labelText: 'Current Amount (Optional)',
+                          hintText: '0.00',
+                          prefixText: '${currencyProvider.currentCurrency.symbol} ',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF1A1A1A),
+                              width: 2,
+                            ),
                           ),
                         ),
-                      ),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -268,18 +272,19 @@ class _CreateGoalFormState extends State<CreateGoalForm> {
                           RegExp(r'^\d+\.?\d{0,2}'),
                         ),
                       ],
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          final amount = double.tryParse(value);
-                          if (amount == null) {
-                            return 'Please enter a valid amount';
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty) {
+                            final amount = double.tryParse(value);
+                            if (amount == null) {
+                              return 'Please enter a valid amount';
+                            }
+                            if (amount < 0) {
+                              return 'Amount cannot be negative';
+                            }
                           }
-                          if (amount < 0) {
-                            return 'Amount cannot be negative';
-                          }
-                        }
-                        return null;
-                      },
+                          return null;
+                        },
+                      ),
                     ),
 
                     const SizedBox(height: 16),
