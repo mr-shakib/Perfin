@@ -28,6 +28,18 @@ class Budget {
     };
   }
 
+  /// Convert Budget to Supabase-compatible JSON (uses snake_case, excludes local-only fields)
+  Map<String, dynamic> toSupabaseJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'amount': amount,
+      'year': year,
+      'month': month,
+      // Note: isActive is local-only, not in Supabase schema
+    };
+  }
+
   /// Create Budget instance from JSON map
   factory Budget.fromJson(Map<String, dynamic> json) {
     return Budget(

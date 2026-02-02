@@ -1,18 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
 import '../models/monthly_summary.dart';
 import '../models/budget.dart';
+import '../models/sync_operation.dart';
+import '../models/sync_result.dart';
 import '../services/transaction_service.dart';
 import '../services/notification_service.dart';
+import '../services/sync_service.dart';
 import '../utils/calculation_utils.dart';
 
 /// Enum representing the loading state
-enum LoadingState {
-  idle,
-  loading,
-  loaded,
-  error,
-}
+enum LoadingState { idle, loading, loaded, error }
 
 /// Provider managing transaction state and operations
 /// Uses ChangeNotifier to notify listeners of state changes
@@ -20,6 +19,7 @@ enum LoadingState {
 class TransactionProvider extends ChangeNotifier {
   final TransactionService _transactionService;
   final NotificationService? _notificationService;
+  final SyncService? _syncService;
   String? _userId;
 
   // Private state
@@ -31,17 +31,21 @@ class TransactionProvider extends ChangeNotifier {
   Budget? _monthlyBudget;
   Map<String, double> _categoryBudgets = {};
 
-  TransactionProvider(this._transactionService, [this._notificationService]);
+  TransactionProvider(
+    this._transactionService, [
+    this._notificationService,
+    this._syncService,
+  ]);
 
   // Public getters for base state
   List<Transaction> get transactions => List.unmodifiable(_transactions);
-  
+
   LoadingState get state => _state;
-  
+
   String? get errorMessage => _errorMessage;
 
   // Derived state getters - computed from base state
-  
+
   /// Calculate current balance (total income - total expense)
   double get currentBalance {
     return calculateBalance(_transactions);
@@ -91,7 +95,10 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// Update budget information for notification checking
-  void updateBudgets(Budget? monthlyBudget, Map<String, double> categoryBudgets) {
+  void updateBudgets(
+    Budget? monthlyBudget,
+    Map<String, double> categoryBudgets,
+  ) {
     _monthlyBudget = monthlyBudget;
     _categoryBudgets = categoryBudgets;
   }
@@ -146,7 +153,14 @@ class TransactionProvider extends ChangeNotifier {
 
     try {
       await _transactionService.saveTransaction(transaction);
-      
+
+      // Queue sync operation for Supabase
+      await _queueSyncOperation(
+        operationType: 'create',
+        entityId: transaction.id,
+        data: transaction.toSupabaseJson(),
+      );
+
       // Reload transactions to get updated list
       _transactions = await _transactionService.fetchTransactions(_userId!);
       _state = LoadingState.loaded;
@@ -188,7 +202,14 @@ class TransactionProvider extends ChangeNotifier {
 
     try {
       await _transactionService.updateTransaction(transaction);
-      
+
+      // Queue sync operation for Supabase
+      await _queueSyncOperation(
+        operationType: 'update',
+        entityId: transaction.id,
+        data: transaction.toSupabaseJson(),
+      );
+
       // Reload transactions to get updated list
       _transactions = await _transactionService.fetchTransactions(_userId!);
       _state = LoadingState.loaded;
@@ -226,7 +247,14 @@ class TransactionProvider extends ChangeNotifier {
 
     try {
       await _transactionService.deleteTransaction(id, _userId!);
-      
+
+      // Queue sync operation for Supabase
+      await _queueSyncOperation(
+        operationType: 'delete',
+        entityId: id,
+        data: {'id': id},
+      );
+
       // Reload transactions to get updated list
       _transactions = await _transactionService.fetchTransactions(_userId!);
       _state = LoadingState.loaded;
@@ -247,9 +275,11 @@ class TransactionProvider extends ChangeNotifier {
   /// Returns list of transactions filtered by date range
   List<Transaction> getTransactionsByDateRange(DateTime start, DateTime end) {
     return _transactions
-        .where((t) => 
-            (t.date.isAfter(start) || t.date.isAtSameMomentAs(start)) &&
-            (t.date.isBefore(end) || t.date.isAtSameMomentAs(end)))
+        .where(
+          (t) =>
+              (t.date.isAfter(start) || t.date.isAtSameMomentAs(start)) &&
+              (t.date.isBefore(end) || t.date.isAtSameMomentAs(end)),
+        )
         .toList();
   }
 
@@ -311,6 +341,49 @@ class TransactionProvider extends ChangeNotifier {
           debugPrint('Failed to send category budget notification: $e');
         }
       }
+    }
+  }
+
+  /// Queue a sync operation to sync data to Supabase
+  Future<void> _queueSyncOperation({
+    required String operationType,
+    required String entityId,
+    required Map<String, dynamic> data,
+  }) async {
+    if (_syncService == null) {
+      debugPrint('SyncService not available, skipping sync');
+      return;
+    }
+
+    try {
+      final operation = SyncOperation(
+        id: const Uuid().v4(),
+        operationType: operationType,
+        entityType: 'transaction',
+        entityId: entityId,
+        data: data,
+        queuedAt: DateTime.now(),
+      );
+
+      await _syncService.queueOperation(operation: operation);
+      debugPrint(
+        'Queued sync operation: $operationType for transaction $entityId',
+      );
+
+      // Trigger background sync (fire and forget)
+      _syncService.processSyncQueue().catchError((e) {
+        debugPrint('Background sync failed: $e');
+        // Return empty result on error
+        return SyncResult(
+          successCount: 0,
+          failureCount: 0,
+          failedOperationIds: [],
+          syncedAt: DateTime.now(),
+        );
+      });
+    } catch (e) {
+      // Don't fail the transaction if sync queueing fails
+      debugPrint('Failed to queue sync operation: $e');
     }
   }
 }

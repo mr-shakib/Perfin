@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import '../../providers/goal_provider.dart' as goal_provider;
 import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -19,10 +20,7 @@ import 'widgets/goal_prioritization_card.dart';
 class GoalDetailScreen extends StatefulWidget {
   final String goalId;
 
-  const GoalDetailScreen({
-    super.key,
-    required this.goalId,
-  });
+  const GoalDetailScreen({super.key, required this.goalId});
 
   @override
   State<GoalDetailScreen> createState() => _GoalDetailScreenState();
@@ -32,7 +30,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAIInsights();
     });
@@ -70,10 +68,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           children: [
             Text(
               'Current: \$${_formatAmount(goal.currentAmount)}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF666666),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -84,7 +79,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 border: OutlineInputBorder(),
                 helperText: 'This will be recorded as an expense transaction',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
@@ -103,36 +100,42 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               if (amountToAdd != null && amountToAdd > 0) {
                 try {
                   final authProvider = context.read<AuthProvider>();
-                  final transactionProvider = context.read<TransactionProvider>();
-                  
+                  final transactionProvider = context
+                      .read<TransactionProvider>();
+
                   // Create a transaction for this goal contribution
                   final transaction = Transaction(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    id: const Uuid().v4(),
                     amount: amountToAdd,
-                    category: 'Savings', // You might want to make this configurable
+                    category:
+                        'Savings', // You might want to make this configurable
                     type: TransactionType.expense,
                     date: DateTime.now(),
                     notes: 'Added to goal: ${goal.name}',
                     userId: authProvider.user!.id,
                     linkedGoalId: goal.id,
                   );
-                  
+
                   // Save the transaction
                   await transactionProvider.addTransaction(transaction);
-                  
+
                   // Update goal progress
                   final newTotal = goal.currentAmount + amountToAdd;
-                  await context.read<goal_provider.GoalProvider>().updateGoalProgress(
+                  await context
+                      .read<goal_provider.GoalProvider>()
+                      .updateGoalProgress(
                         goalId: goal.id,
                         userId: authProvider.user!.id,
                         newAmount: newTotal,
                       );
-                  
+
                   if (mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Added \$${amountToAdd.toStringAsFixed(2)}! New total: \$${newTotal.toStringAsFixed(2)}'),
+                        content: Text(
+                          'Added \$${amountToAdd.toStringAsFixed(2)}! New total: \$${newTotal.toStringAsFixed(2)}',
+                        ),
                         backgroundColor: const Color(0xFF4CAF50),
                         action: SnackBarAction(
                           label: 'View',
@@ -157,7 +160,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Please enter a valid amount greater than zero'),
+                    content: Text(
+                      'Please enter a valid amount greater than zero',
+                    ),
                     backgroundColor: const Color(0xFFF44336),
                   ),
                 );
@@ -185,10 +190,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           children: [
             const Text(
               'Set the exact current amount',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF666666),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -198,7 +200,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 prefixText: '\$ ',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
@@ -216,7 +220,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               if (amount != null && amount >= 0) {
                 try {
                   final authProvider = context.read<AuthProvider>();
-                  await context.read<goal_provider.GoalProvider>().updateGoalProgress(
+                  await context
+                      .read<goal_provider.GoalProvider>()
+                      .updateGoalProgress(
                         goalId: goal.id,
                         userId: authProvider.user!.id,
                         newAmount: amount,
@@ -254,7 +260,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Goal'),
-        content: Text('Are you sure you want to delete "${goal.name}"? This action cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${goal.name}"? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -265,9 +273,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               try {
                 final authProvider = context.read<AuthProvider>();
                 await context.read<goal_provider.GoalProvider>().deleteGoal(
-                      goalId: goal.id,
-                      userId: authProvider.user!.id,
-                    );
+                  goalId: goal.id,
+                  userId: authProvider.user!.id,
+                );
                 if (mounted) {
                   Navigator.pop(context); // Close dialog
                   Navigator.pop(context); // Close detail screen
@@ -290,9 +298,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 }
               }
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -315,7 +321,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             onPressed: () async {
               try {
                 final authProvider = context.read<AuthProvider>();
-                await context.read<goal_provider.GoalProvider>().markGoalComplete(
+                await context
+                    .read<goal_provider.GoalProvider>()
+                    .markGoalComplete(
                       goalId: goal.id,
                       userId: authProvider.user!.id,
                     );
@@ -395,9 +403,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           final goal = goalProvider.getGoalById(widget.goalId);
 
           if (goal == null) {
-            return const Center(
-              child: Text('Goal not found'),
-            );
+            return const Center(child: Text('Goal not found'));
           }
 
           return SingleChildScrollView(
@@ -503,7 +509,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ),
               ],
             ),
-            
+
             // Quick Add Money button
             if (!goal.isCompleted) ...[
               const SizedBox(height: 16),
@@ -568,9 +574,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             value: progressPercentage / 100,
             minHeight: 12,
             backgroundColor: const Color(0xFFE5E5E5),
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              Color(0xFF1A1A1A),
-            ),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1A1A1A)),
           ),
         ),
 
@@ -608,10 +612,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         if (goal.isManualTracking) ...[
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFFFFF3E0),
               borderRadius: BorderRadius.circular(8),
@@ -619,11 +620,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(
-                  Icons.edit,
-                  size: 16,
-                  color: Color(0xFFFF9800),
-                ),
+                Icon(Icons.edit, size: 16, color: Color(0xFFFF9800)),
                 SizedBox(width: 8),
                 Text(
                   'Manually tracked',
@@ -655,11 +652,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: const Color(0xFF666666),
-          ),
+          Icon(icon, size: 20, color: const Color(0xFF666666)),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -674,10 +667,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               ),
               Text(
                 sublabel,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 11, color: Color(0xFF666666)),
               ),
             ],
           ),
@@ -702,10 +692,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         icon: const Icon(Icons.check_circle, size: 24),
         label: const Text(
           'Mark as Complete',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

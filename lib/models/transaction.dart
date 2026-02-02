@@ -75,6 +75,19 @@ class Transaction {
     };
   }
 
+  /// Convert Transaction to Supabase-compatible JSON (excludes local-only fields)
+  Map<String, dynamic> toSupabaseJson() {
+    return {
+      'id': id,
+      'amount': amount,
+      'category': category,
+      'type': type.toJson(),
+      'date': date.toIso8601String(),
+      'notes': notes,
+      'user_id': userId, // Note: Supabase uses snake_case
+    };
+  }
+
   /// Create Transaction instance from JSON map
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(

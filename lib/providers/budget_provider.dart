@@ -1,23 +1,24 @@
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 import '../models/budget.dart';
+import '../models/sync_operation.dart';
+import '../models/sync_result.dart';
 import '../services/budget_service.dart';
+import '../services/sync_service.dart';
 import 'transaction_provider.dart';
 
 // Export LoadingState from transaction_provider for consistency
 export 'transaction_provider.dart' show LoadingState;
 
 /// Enum representing budget status
-enum BudgetStatus {
-  underBudget,
-  nearLimit,
-  overBudget,
-}
+enum BudgetStatus { underBudget, nearLimit, overBudget }
 
 /// Provider managing budget state and operations
 /// Uses ChangeNotifier to notify listeners of state changes
 /// Provides derived state calculations for remaining budget and over-budget detection
 class BudgetProvider extends ChangeNotifier {
   final BudgetService _budgetService;
+  final SyncService? _syncService;
   TransactionProvider? _transactionProvider;
   String? _userId;
 
@@ -27,15 +28,15 @@ class BudgetProvider extends ChangeNotifier {
   LoadingState _state = LoadingState.idle;
   String? _errorMessage;
 
-  BudgetProvider(this._budgetService);
+  BudgetProvider(this._budgetService, [this._syncService]);
 
   // Public getters for base state
   Budget? get monthlyBudget => _monthlyBudget;
-  
+
   Map<String, double> get categoryBudgets => Map.unmodifiable(_categoryBudgets);
-  
+
   LoadingState get state => _state;
-  
+
   String? get errorMessage => _errorMessage;
 
   // Derived state getters - computed from base state
@@ -46,13 +47,15 @@ class BudgetProvider extends ChangeNotifier {
     if (_monthlyBudget == null || _transactionProvider == null) {
       return 0.0;
     }
-    
+
     final now = DateTime.now();
     // Only consider current month's expenses if budget is for current month
-    if (_monthlyBudget!.year == now.year && _monthlyBudget!.month == now.month) {
-      return _monthlyBudget!.amount - _transactionProvider!.currentMonthSummary.totalExpense;
+    if (_monthlyBudget!.year == now.year &&
+        _monthlyBudget!.month == now.month) {
+      return _monthlyBudget!.amount -
+          _transactionProvider!.currentMonthSummary.totalExpense;
     }
-    
+
     return _monthlyBudget!.amount;
   }
 
@@ -62,17 +65,17 @@ class BudgetProvider extends ChangeNotifier {
     if (_transactionProvider == null) {
       return {};
     }
-    
+
     final expensesByCategory = _transactionProvider!.expensesByCategory;
     final Map<String, BudgetStatus> statusMap = {};
-    
+
     for (var entry in _categoryBudgets.entries) {
       final category = entry.key;
       final spent = expensesByCategory[category] ?? 0.0;
-      
+
       statusMap[category] = getBudgetStatusForCategory(category, spent);
     }
-    
+
     return statusMap;
   }
 
@@ -82,13 +85,15 @@ class BudgetProvider extends ChangeNotifier {
     if (_monthlyBudget == null || _transactionProvider == null) {
       return false;
     }
-    
+
     final now = DateTime.now();
     // Only check current month's expenses if budget is for current month
-    if (_monthlyBudget!.year == now.year && _monthlyBudget!.month == now.month) {
-      return _transactionProvider!.currentMonthSummary.totalExpense > _monthlyBudget!.amount;
+    if (_monthlyBudget!.year == now.year &&
+        _monthlyBudget!.month == now.month) {
+      return _transactionProvider!.currentMonthSummary.totalExpense >
+          _monthlyBudget!.amount;
     }
-    
+
     return false;
   }
 
@@ -97,7 +102,7 @@ class BudgetProvider extends ChangeNotifier {
   void updateAuth(String? userId, TransactionProvider? transactionProvider) {
     _userId = userId;
     _transactionProvider = transactionProvider;
-    
+
     if (userId == null) {
       // Clear budgets when user logs out
       _monthlyBudget = null;
@@ -132,10 +137,10 @@ class BudgetProvider extends ChangeNotifier {
         now.month,
       );
       _categoryBudgets = await _budgetService.fetchCategoryBudgets(_userId!);
-      
+
       // Update transaction provider with budget info
       _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
-      
+
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
@@ -175,13 +180,20 @@ class BudgetProvider extends ChangeNotifier {
         year: now.year,
         month: now.month,
       );
-      
+
       await _budgetService.saveBudget(budget);
       _monthlyBudget = budget;
-      
+
+      // Queue sync operation for Supabase
+      await _queueSyncOperation(
+        operationType: 'create',
+        entityId: budget.id,
+        data: budget.toSupabaseJson(),
+      );
+
       // Update transaction provider with new budget info
       _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
-      
+
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
@@ -218,13 +230,13 @@ class BudgetProvider extends ChangeNotifier {
 
     try {
       await _budgetService.saveCategoryBudget(category, amount, _userId!);
-      
+
       // Update local state
       _categoryBudgets[category] = amount;
-      
+
       // Update transaction provider with new budget info
       _transactionProvider?.updateBudgets(_monthlyBudget, _categoryBudgets);
-      
+
       _state = LoadingState.loaded;
       _errorMessage = null;
       notifyListeners();
@@ -250,19 +262,58 @@ class BudgetProvider extends ChangeNotifier {
   /// - overBudget: spent > 100% of budget
   BudgetStatus getBudgetStatusForCategory(String category, double spent) {
     final budgetAmount = _categoryBudgets[category];
-    
+
     if (budgetAmount == null || budgetAmount == 0) {
       return BudgetStatus.underBudget;
     }
-    
+
     final percentage = spent / budgetAmount;
-    
+
     if (percentage > 1.0) {
       return BudgetStatus.overBudget;
     } else if (percentage >= 0.8) {
       return BudgetStatus.nearLimit;
     } else {
       return BudgetStatus.underBudget;
+    }
+  }
+
+  /// Queue a sync operation to sync data to Supabase
+  Future<void> _queueSyncOperation({
+    required String operationType,
+    required String entityId,
+    required Map<String, dynamic> data,
+  }) async {
+    if (_syncService == null) {
+      debugPrint('SyncService not available, skipping sync');
+      return;
+    }
+
+    try {
+      final operation = SyncOperation(
+        id: const Uuid().v4(),
+        operationType: operationType,
+        entityType: 'budget',
+        entityId: entityId,
+        data: data,
+        queuedAt: DateTime.now(),
+      );
+
+      await _syncService.queueOperation(operation: operation);
+      debugPrint('Queued sync operation: $operationType for budget $entityId');
+
+      // Trigger background sync (fire and forget)
+      _syncService.processSyncQueue().catchError((e) {
+        debugPrint('Background sync failed: $e');
+        return SyncResult(
+          successCount: 0,
+          failureCount: 0,
+          failedOperationIds: [],
+          syncedAt: DateTime.now(),
+        );
+      });
+    } catch (e) {
+      debugPrint('Failed to queue sync operation: $e');
     }
   }
 }

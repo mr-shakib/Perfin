@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/transaction.dart';
@@ -19,7 +20,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   TransactionType _type = TransactionType.expense;
   String _selectedCategory = 'Food';
   DateTime _selectedDate = DateTime.now();
@@ -81,7 +82,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final userId = context.read<AuthProvider>().user?.id ?? 'user_1';
 
     final transaction = Transaction(
-      id: 'txn_${DateTime.now().millisecondsSinceEpoch}',
+      id: const Uuid().v4(),
       userId: userId,
       amount: amount,
       type: _type,
@@ -92,7 +93,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     try {
       await context.read<TransactionProvider>().addTransaction(transaction);
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -367,7 +368,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           color: isSelected ? const Color(0xFF1A1A1A) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0),
+            color: isSelected
+                ? const Color(0xFF1A1A1A)
+                : const Color(0xFFE0E0E0),
             width: 1.5,
           ),
         ),

@@ -43,49 +43,48 @@ import 'screens/budget/manage_budget_screen.dart';
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables (may fail on web, that's okay)
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint('Warning: Could not load .env file (expected on web): $e');
   }
-  
+
   // Debug: Check if GROQ_API_KEY is loaded
   debugPrint('=== Environment Variables Debug ===');
   debugPrint('GROQ_API_KEY loaded: ${dotenv.env['GROQ_API_KEY'] != null}');
   debugPrint('GROQ_API_KEY length: ${dotenv.env['GROQ_API_KEY']?.length ?? 0}');
   debugPrint('All env keys: ${dotenv.env.keys.toList()}');
   debugPrint('===================================');
-  
+
   // Initialize Supabase (skip if credentials are invalid)
   bool supabaseInitialized = false;
   try {
     final supabaseUrl = SupabaseConfig.supabaseUrl;
     final supabaseKey = SupabaseConfig.supabaseAnonKey;
-    
+
     // Check if credentials look valid
     if (supabaseUrl.contains('supabase.co') && supabaseKey.startsWith('eyJ')) {
       // Add a small delay to help with DNS resolution on some devices
       await Future.delayed(const Duration(milliseconds: 500));
-      
-      await Supabase.initialize(
-        url: supabaseUrl,
-        anonKey: supabaseKey,
-      );
+
+      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
       supabaseInitialized = true;
       debugPrint('✓ Supabase initialized successfully');
       debugPrint('  URL: $supabaseUrl');
     } else {
       debugPrint('⚠ Skipping Supabase - Invalid credentials detected');
       debugPrint('  URL: $supabaseUrl');
-      debugPrint('  Key starts with: ${supabaseKey.substring(0, supabaseKey.length > 10 ? 10 : supabaseKey.length)}...');
+      debugPrint(
+        '  Key starts with: ${supabaseKey.substring(0, supabaseKey.length > 10 ? 10 : supabaseKey.length)}...',
+      );
     }
   } catch (e) {
     debugPrint('⚠ Supabase initialization failed: $e');
     debugPrint('  This might be a network/DNS issue on the device');
   }
-  
+
   // Initialize storage service
   final storageService = HiveStorageService();
   try {
@@ -95,10 +94,10 @@ void main() async {
     debugPrint('✗ Error initializing storage: $e');
     // Continue anyway - app can still work with limited functionality
   }
-  
+
   // Initialize sync service for cloud backup (only if Supabase is available)
   final syncService = SyncService(storageService);
-  
+
   // Initialize services
   final authService = AuthService(storageService);
   final themeService = ThemeService(storageService);
@@ -107,15 +106,20 @@ void main() async {
   final onboardingService = OnboardingService(storageService);
   final goalService = GoalService(storageService, transactionService);
   final insightService = InsightService(transactionService);
-  
+
   // Initialize notification service (without requesting permissions)
   final notificationHelper = NotificationHelper();
-  final notificationService = NotificationService(storageService, notificationHelper);
+  final notificationService = NotificationService(
+    storageService,
+    notificationHelper,
+  );
   // Note: Permissions will be requested during onboarding
-  
+
   // Get AI API key from environment (using Groq instead of Gemini)
   final aiApiKey = dotenv.env['GROQ_API_KEY'] ?? '';
-  debugPrint('AI API Key loaded: ${aiApiKey.isNotEmpty ? "Yes (${aiApiKey.length} chars)" : "No - EMPTY!"}');
+  debugPrint(
+    'AI API Key loaded: ${aiApiKey.isNotEmpty ? "Yes (${aiApiKey.length} chars)" : "No - EMPTY!"}',
+  );
   if (aiApiKey.isEmpty) {
     debugPrint('WARNING: GROQ_API_KEY is not set in .env file!');
     debugPrint('Available keys in .env: ${dotenv.env.keys.join(", ")}');
@@ -127,7 +131,7 @@ void main() async {
     insightService: insightService,
     apiKey: aiApiKey,
   );
-  
+
   // Start background sync only if Supabase is initialized
   if (supabaseInitialized) {
     syncService.processSyncQueue().catchError((e) {
@@ -142,20 +146,22 @@ void main() async {
   } else {
     debugPrint('⚠ Skipping background sync - Supabase not available');
   }
-  
-  runApp(MyApp(
-    authService: authService,
-    themeService: themeService,
-    transactionService: transactionService,
-    budgetService: budgetService,
-    onboardingService: onboardingService,
-    goalService: goalService,
-    aiService: aiService,
-    insightService: insightService,
-    notificationService: notificationService,
-    storageService: storageService,
-    syncService: syncService,
-  ));
+
+  runApp(
+    MyApp(
+      authService: authService,
+      themeService: themeService,
+      transactionService: transactionService,
+      budgetService: budgetService,
+      onboardingService: onboardingService,
+      goalService: goalService,
+      aiService: aiService,
+      insightService: insightService,
+      notificationService: notificationService,
+      storageService: storageService,
+      syncService: syncService,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -191,45 +197,54 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         // ThemeProvider at root - independent of other providers
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(themeService),
-        ),
-        
+        ChangeNotifierProvider(create: (_) => ThemeProvider(themeService)),
+
         // CurrencyProvider - independent of other providers
-        ChangeNotifierProvider(
-          create: (_) => CurrencyProvider(storageService),
-        ),
-        
+        ChangeNotifierProvider(create: (_) => CurrencyProvider(storageService)),
+
         // OnboardingProvider - independent of other providers
         ChangeNotifierProvider(
           create: (_) => OnboardingProvider(onboardingService),
         ),
-        
+
         // AuthProvider - independent of other providers
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(authService),
-        ),
-        
+        ChangeNotifierProvider(create: (_) => AuthProvider(authService)),
+
         // TransactionProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, TransactionProvider>(
-          create: (_) => TransactionProvider(transactionService, notificationService),
+          create: (_) => TransactionProvider(
+            transactionService,
+            notificationService,
+            syncService,
+          ),
           update: (_, auth, previous) {
-            final provider = previous ?? TransactionProvider(transactionService, notificationService);
+            final provider =
+                previous ??
+                TransactionProvider(
+                  transactionService,
+                  notificationService,
+                  syncService,
+                );
             provider.updateUserId(auth.user?.id);
             return provider;
           },
         ),
-        
+
         // BudgetProvider depends on both AuthProvider and TransactionProvider
-        ChangeNotifierProxyProvider2<AuthProvider, TransactionProvider, BudgetProvider>(
-          create: (_) => BudgetProvider(budgetService),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          TransactionProvider,
+          BudgetProvider
+        >(
+          create: (_) => BudgetProvider(budgetService, syncService),
           update: (_, auth, transaction, previous) {
-            final provider = previous ?? BudgetProvider(budgetService);
+            final provider =
+                previous ?? BudgetProvider(budgetService, syncService);
             provider.updateAuth(auth.user?.id, transaction);
             return provider;
           },
         ),
-        
+
         // AIProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, AIProvider>(
           create: (_) => AIProvider(aiService, storageService),
@@ -239,7 +254,7 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
-        
+
         // InsightProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, InsightProvider>(
           create: (_) => InsightProvider(insightService),
@@ -249,12 +264,12 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
-        
+
         // GoalProvider depends on AuthProvider
         ChangeNotifierProxyProvider<AuthProvider, GoalProvider>(
-          create: (_) => GoalProvider(goalService),
+          create: (_) => GoalProvider(goalService, syncService),
           update: (_, auth, previous) {
-            return previous ?? GoalProvider(goalService);
+            return previous ?? GoalProvider(goalService, syncService);
           },
         ),
       ],
@@ -296,12 +311,12 @@ class _AppRootState extends State<AppRoot> {
         return MaterialApp(
           title: 'PerFin - Personal Finance',
           debugShowCheckedModeBanner: false,
-          
+
           // Theme configuration
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          
+
           // Routing configuration
           initialRoute: initialRoute,
           routes: {
@@ -310,13 +325,20 @@ class _AppRootState extends State<AppRoot> {
             '/login': (context) => const LoginScreen(),
             '/signup': (context) => const SignupScreen(),
             '/onboarding/goal': (context) => const OnboardingGoalScreen(),
-            '/onboarding/categories': (context) => const OnboardingCategoriesScreen(),
-            '/onboarding/benefits': (context) => const OnboardingBenefitsScreen(),
-            '/onboarding/notifications': (context) => const OnboardingNotificationsScreen(),
-            '/onboarding/weekly-review': (context) => const OnboardingWeeklyReviewScreen(),
-            '/dashboard': (context) => const MainDashboard(), // Main dashboard with tabs
-            '/home': (context) => const HomeScreen(), // Direct access to home (for testing)
-            '/transactions': (context) => const MyHomePage(title: 'Transactions'),
+            '/onboarding/categories': (context) =>
+                const OnboardingCategoriesScreen(),
+            '/onboarding/benefits': (context) =>
+                const OnboardingBenefitsScreen(),
+            '/onboarding/notifications': (context) =>
+                const OnboardingNotificationsScreen(),
+            '/onboarding/weekly-review': (context) =>
+                const OnboardingWeeklyReviewScreen(),
+            '/dashboard': (context) =>
+                const MainDashboard(), // Main dashboard with tabs
+            '/home': (context) =>
+                const HomeScreen(), // Direct access to home (for testing)
+            '/transactions': (context) =>
+                const MyHomePage(title: 'Transactions'),
             '/transactions/add': (context) => const AddTransactionScreen(),
             '/budget': (context) => const MyHomePage(title: 'Budget'),
             '/budget/manage': (context) => const ManageBudgetScreen(),
@@ -351,9 +373,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -373,7 +393,10 @@ class _MyHomePageState extends State<MyHomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
               ),
             ),
           ],
