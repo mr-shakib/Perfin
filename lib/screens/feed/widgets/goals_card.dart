@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/goal_provider.dart';
+import '../../../providers/currency_provider.dart';
 
 /// Full-screen Goals Card
 class GoalsCard extends StatelessWidget {
@@ -8,8 +9,8 @@ class GoalsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<GoalProvider>(
-      builder: (context, goalProvider, _) {
+    return Consumer2<GoalProvider, CurrencyProvider>(
+      builder: (context, goalProvider, currencyProvider, _) {
         final goals = goalProvider.goals;
         final activeGoals = goals.where((g) => !g.isCompleted).toList();
         final completedGoals = goals.where((g) => g.isCompleted).toList();
@@ -81,7 +82,7 @@ class GoalsCard extends StatelessWidget {
                           itemCount: goals.length,
                           itemBuilder: (context, index) {
                             final goal = goals[index];
-                            return _buildGoalItem(goal);
+                            return _buildGoalItem(goal, currencyProvider);
                           },
                         ),
                 ),
@@ -113,7 +114,7 @@ class GoalsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGoalItem(goal) {
+  Widget _buildGoalItem(goal, CurrencyProvider currencyProvider) {
     final progress = goal.targetAmount > 0
         ? (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0)
         : 0.0;
@@ -171,7 +172,7 @@ class GoalsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$${goal.currentAmount.toStringAsFixed(0)}',
+                '${currencyProvider.formatWhole(goal.currentAmount)}',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -179,7 +180,7 @@ class GoalsCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'of \$${goal.targetAmount.toStringAsFixed(0)}',
+                'of ${currencyProvider.formatWhole(goal.targetAmount)}',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white.withValues(alpha: 0.8),

@@ -119,7 +119,7 @@ class _BudgetManagementScreenState extends State<BudgetManagementScreen> {
               entry.key,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text('\$${entry.value.toStringAsFixed(2)} / month'),
+            subtitle: Text('${context.watch<CurrencyProvider>().format(entry.value)} / month'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

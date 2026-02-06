@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/budget_provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../theme/app_colors.dart';
 
 /// Budget Status List - Clean Minimal Design
@@ -11,8 +12,8 @@ class BudgetStatusList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<BudgetProvider, TransactionProvider>(
-      builder: (context, budgetProvider, transactionProvider, _) {
+    return Consumer3<BudgetProvider, TransactionProvider, CurrencyProvider>(
+      builder: (context, budgetProvider, transactionProvider, currencyProvider, _) {
         final categoryBudgets = budgetProvider.categoryBudgets;
         final expensesByCategory = transactionProvider.expensesByCategory;
 
@@ -86,6 +87,7 @@ class BudgetStatusList extends StatelessWidget {
                     budget: budgetAmount,
                     utilization: utilization,
                     status: status,
+                    currencyProvider: currencyProvider,
                   ),
                 );
               }),
@@ -102,6 +104,7 @@ class BudgetStatusList extends StatelessWidget {
     required double budget,
     required double utilization,
     required BudgetStatus status,
+    required CurrencyProvider currencyProvider,
   }) {
     Color statusColor;
 
@@ -169,7 +172,7 @@ class BudgetStatusList extends StatelessWidget {
         const SizedBox(height: 8),
 
         Text(
-          '\$${spent.toStringAsFixed(0)} of \$${budget.toStringAsFixed(0)}',
+          '${currencyProvider.formatWhole(spent)} of ${currencyProvider.formatWhole(budget)}',
           style: const TextStyle(
             fontSize: 13,
             color: Color(0xFF999999),

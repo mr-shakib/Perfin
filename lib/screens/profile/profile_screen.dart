@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/transaction_provider.dart';
 import '../../theme/app_colors.dart';
 import 'widgets/user_info_section.dart';
 import 'widgets/settings_list.dart';
@@ -15,7 +16,15 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final transactionProvider = Provider.of<TransactionProvider>(context);
     final user = authProvider.user;
+
+    // Load transactions when screen is accessed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (transactionProvider.transactions.isEmpty) {
+        transactionProvider.loadTransactions();
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.creamLight,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../models/goal_feasibility_analysis.dart';
 import '../../../models/spending_reduction.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../theme/app_colors.dart';
 
 /// Widget displaying AI feasibility analysis for a goal
@@ -18,15 +20,17 @@ class AIFeasibilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return _buildLoadingState();
-    }
+    return Consumer<CurrencyProvider>(
+      builder: (context, currencyProvider, _) {
+        if (isLoading) {
+          return _buildLoadingState();
+        }
 
-    if (analysis == null) {
-      return _buildUnavailableState();
-    }
+        if (analysis == null) {
+          return _buildUnavailableState();
+        }
 
-    return Container(
+        return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -126,6 +130,8 @@ class AIFeasibilityCard extends StatelessWidget {
           _buildConfidenceIndicator(),
         ],
       ),
+    );
+      },
     );
   }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../models/goal.dart';
 import '../goal_detail_screen.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../theme/app_colors.dart';
 
 /// Widget displaying individual goal with progress
@@ -21,7 +23,9 @@ class GoalCard extends StatelessWidget {
     final daysRemaining = goal.daysRemaining;
     final isCompleted = goal.isCompleted;
 
-    return GestureDetector(
+    return Consumer<CurrencyProvider>(
+      builder: (context, currencyProvider, _) {
+        return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -98,7 +102,7 @@ class GoalCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '\$${_formatAmount(goal.currentAmount)}',
+                  '${currencyProvider.formatWhole(goal.currentAmount)}',
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -106,7 +110,7 @@ class GoalCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'of \$${_formatAmount(goal.targetAmount)}',
+                  'of ${currencyProvider.formatWhole(goal.targetAmount)}',
                   style: const TextStyle(
                     fontSize: 16,
                     color: Color(0xFF666666),
@@ -158,7 +162,7 @@ class GoalCard extends StatelessWidget {
                 Expanded(
                   child: _buildInfoChip(
                     icon: Icons.savings_outlined,
-                    label: '\$${_formatAmount(requiredMonthlySavings)}/mo',
+                    label: '${currencyProvider.formatWhole(requiredMonthlySavings)}/mo',
                     color: const Color(0xFF666666),
                   ),
                 ),
@@ -202,6 +206,8 @@ class GoalCard extends StatelessWidget {
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildInfoChip({
@@ -243,12 +249,6 @@ class GoalCard extends StatelessWidget {
     );
   }
 
-  String _formatAmount(double amount) {
-    if (amount >= 1000) {
-      return NumberFormat('#,##0').format(amount);
-    }
-    return amount.toStringAsFixed(0);
-  }
 
   String _formatDeadline(DateTime targetDate, int daysRemaining) {
     if (daysRemaining < 0) {

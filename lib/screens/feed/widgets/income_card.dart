@@ -140,7 +140,7 @@ class IncomeCard extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      '\$${entry.value.toStringAsFixed(0)}',
+                                      currencyProvider.formatWhole(entry.value),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,

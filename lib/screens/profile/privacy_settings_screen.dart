@@ -234,35 +234,4 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             ),
     );
   }
-
-  /// Static method to check if AI features are enabled
-  static Future<bool> isAIEnabled() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_aiEnabledKey) ?? true;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  /// Static method to check if a specific notification type is enabled
-  static Future<bool> isNotificationEnabled(String type) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      switch (type) {
-        case 'budget':
-          return prefs.getBool(_budgetAlertsKey) ?? true;
-        case 'recurring':
-          return prefs.getBool(_recurringRemindersKey) ?? true;
-        case 'goal':
-          return prefs.getBool(_goalAlertsKey) ?? true;
-        case 'unusual':
-          return prefs.getBool(_unusualSpendingKey) ?? true;
-        default:
-          return true;
-      }
-    } catch (e) {
-      return true;
-    }
-  }
 }
