@@ -426,6 +426,119 @@ class AIProvider extends ChangeNotifier {
     }
   }
 
+  /// Process a copilot query with an attached image (e.g., bill or receipt)
+  Future<void> sendCopilotQueryWithImage(String query, String imagePath) async {
+    if (_userId == null) {
+      _state = LoadingState.error;
+      _errorMessage = 'User not authenticated';
+      notifyListeners();
+      return;
+    }
+
+    // Create new conversation if none exists
+    if (_currentConversationId == null || _conversations.isEmpty) {
+      createNewConversation();
+    }
+
+    final conversationIndex = _conversations.indexWhere((c) => c.id == _currentConversationId);
+    if (conversationIndex == -1) return;
+
+    // Add user message with image to current conversation
+    final userMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: _userId!,
+      content: query,
+      role: MessageRole.user,
+      timestamp: DateTime.now(),
+      imagePath: imagePath,
+    );
+
+    final updatedMessages = List<ChatMessage>.from(_conversations[conversationIndex].messages)
+      ..add(userMessage);
+
+    // Update conversation title if it's the first message
+    String title = _conversations[conversationIndex].title;
+    if (updatedMessages.length == 1 || title == 'New Conversation') {
+      title = 'Bill Analysis';
+    }
+
+    _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+      messages: updatedMessages,
+      title: title,
+      updatedAt: DateTime.now(),
+    );
+
+    await _saveConversations();
+    notifyListeners();
+
+    _state = LoadingState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Process the image and extract transaction data
+      final response = await _aiService.analyzeBillImage(
+        userId: _userId!,
+        imagePath: imagePath,
+        userQuery: query,
+      );
+
+      // Add assistant response to conversation
+      final assistantMessage = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: _userId!,
+        content: response.message,
+        role: MessageRole.assistant,
+        timestamp: DateTime.now(),
+        metadata: {
+          'extractedTransactions': response.transactions,
+          'confidenceScore': response.confidence,
+        },
+      );
+
+      final finalMessages = List<ChatMessage>.from(updatedMessages)
+        ..add(assistantMessage);
+
+      _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+        messages: finalMessages,
+        updatedAt: DateTime.now(),
+      );
+
+      // Move conversation to top of list
+      final conversation = _conversations.removeAt(conversationIndex);
+      _conversations.insert(0, conversation);
+
+      await _saveConversations();
+
+      _state = LoadingState.loaded;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      _state = LoadingState.error;
+      _errorMessage = 'Failed to analyze bill: ${e.toString()}';
+      
+      // Add error message to chat so user knows what happened
+      final errorMessage = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: _userId!,
+        content: 'Sorry, I encountered an error analyzing the bill: ${e.toString()}. Please try again with a clearer image.',
+        role: MessageRole.assistant,
+        timestamp: DateTime.now(),
+      );
+
+      final errorMessages = List<ChatMessage>.from(_conversations[conversationIndex].messages)
+        ..add(errorMessage);
+
+      _conversations[conversationIndex] = _conversations[conversationIndex].copyWith(
+        messages: errorMessages,
+        updatedAt: DateTime.now(),
+      );
+
+      await _saveConversations();
+      notifyListeners();
+    }
+  }
+
   /// Analyze goal feasibility
   Future<void> analyzeGoalFeasibility(Goal goal) async {
     if (_userId == null) {

@@ -184,6 +184,104 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  /// Bulk import transactions from bill analysis
+  /// Creates multiple transactions from extracted bill data
+  /// Persists to storage on success
+  /// Updates state and notifies listeners
+  Future<void> importTransactionsFromBill(
+    List<Map<String, dynamic>> extractedTransactions,
+  ) async {
+    if (_userId == null) {
+      _state = LoadingState.error;
+      _errorMessage = 'User not authenticated';
+      notifyListeners();
+      return;
+    }
+
+    if (extractedTransactions.isEmpty) {
+      _errorMessage = 'No transactions to import';
+      notifyListeners();
+      return;
+    }
+
+    _state = LoadingState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final uuid = const Uuid();
+      int successCount = 0;
+
+      for (final txnData in extractedTransactions) {
+        try {
+          // Parse transaction data
+          final amount = (txnData['amount'] as num?)?.toDouble() ?? 0.0;
+          final category = txnData['category'] as String? ?? 'other';
+          final description = txnData['description'] as String? ?? 'Unknown';
+          final merchant = txnData['merchant'] as String? ?? '';
+          final dateStr = txnData['date'] as String?;
+          
+          DateTime transactionDate;
+          try {
+            transactionDate = dateStr != null 
+                ? DateTime.parse(dateStr) 
+                : DateTime.now();
+          } catch (e) {
+            transactionDate = DateTime.now();
+          }
+
+          // Create transaction
+          final transaction = Transaction(
+            id: uuid.v4(),
+            amount: amount,
+            category: category,
+            type: TransactionType.expense,
+            date: transactionDate,
+            notes: merchant.isNotEmpty 
+                ? '$merchant - $description' 
+                : description,
+            userId: _userId!,
+            isSynced: false,
+          );
+
+          // Validate and save
+          if (transaction.isValid()) {
+            await _transactionService.saveTransaction(transaction);
+
+            // Queue sync operation
+            await _queueSyncOperation(
+              operationType: 'create',
+              entityId: transaction.id,
+              data: transaction.toSupabaseJson(),
+            );
+
+            successCount++;
+          }
+        } catch (e) {
+          debugPrint('Failed to import transaction: $e');
+          // Continue with other transactions
+        }
+      }
+
+      // Reload transactions to get updated list
+      _transactions = await _transactionService.fetchTransactions(_userId!);
+      _state = LoadingState.loaded;
+      _errorMessage = successCount > 0 
+          ? null 
+          : 'Failed to import any transactions';
+      notifyListeners();
+
+      // Check budget and send notifications if needed
+      if (successCount > 0) {
+        await _checkBudgetAndNotify();
+      }
+    } catch (e) {
+      _state = LoadingState.error;
+      _errorMessage = 'Failed to import transactions: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
   /// Update an existing transaction
   /// Validates transaction before updating
   /// Persists to storage on success

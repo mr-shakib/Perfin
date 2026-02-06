@@ -137,6 +137,32 @@ class HiveStorageService implements StorageService {
       return value;
     }
     
+    // Handle Map type conversion (Hive returns _Map<dynamic, dynamic>)
+    if (value is Map && T.toString().contains('Map')) {
+      // Convert to Map<String, dynamic>
+      final convertedMap = <String, dynamic>{};
+      value.forEach((key, val) {
+        convertedMap[key.toString()] = val;
+      });
+      return convertedMap as T;
+    }
+    
+    // Handle List type conversion
+    if (value is List && T.toString().contains('List')) {
+      // Convert list items if needed
+      final convertedList = value.map((item) {
+        if (item is Map) {
+          final convertedMap = <String, dynamic>{};
+          item.forEach((key, val) {
+            convertedMap[key.toString()] = val;
+          });
+          return convertedMap;
+        }
+        return item;
+      }).toList();
+      return convertedList as T;
+    }
+    
     // Handle string-encoded JSON
     if (value is String && T != String) {
       try {

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/ai_summary.dart';
@@ -14,6 +15,7 @@ import '../models/spending_reduction.dart';
 import '../models/goal_prioritization.dart';
 import '../models/data_reference.dart';
 import '../models/transaction.dart';
+import '../models/bill_analysis_response.dart';
 import 'transaction_service.dart';
 import 'budget_service.dart';
 import 'goal_service.dart';
@@ -1251,6 +1253,230 @@ Be supportive and actionable! Use emojis 🎯
         'Failed to prioritize goals: ${e.toString()}',
       );
     }
+  }
+
+  /// Analyze bill/receipt image and extract transaction details
+  /// Uses Groq's vision API (llama-3.2-11b-vision-preview) to read and extract transaction data
+  Future<BillAnalysisResponse> analyzeBillImage({
+    required String userId,
+    required String imagePath,
+    String? userQuery,
+  }) async {
+    try {
+      // Read and encode the image
+      final imageFile = File(imagePath);
+      if (!await imageFile.exists()) {
+        throw AIServiceException('Image file not found: $imagePath');
+      }
+
+      final imageBytes = await imageFile.readAsBytes();
+      final base64Image = base64Encode(imageBytes);
+      
+      // Determine image type
+      final extension = imagePath.toLowerCase().split('.').last;
+      String mimeType = 'image/jpeg';
+      if (extension == 'png') {
+        mimeType = 'image/png';
+      } else if (extension == 'gif') {
+        mimeType = 'image/gif';
+      } else if (extension == 'webp') {
+        mimeType = 'image/webp';
+      }
+
+      // Build the prompt for bill analysis
+      final prompt = '''Analyze this bill/receipt image and extract transaction details.
+
+Instructions:
+1. Identify all line items with their amounts
+2. Extract the merchant/vendor name
+3. Note the date of transaction
+4. Determine the category (e.g., groceries, dining, shopping, transportation, utilities, healthcare, entertainment)
+5. Calculate the total amount
+
+Format your response as JSON with this exact structure:
+{
+  "merchant": "Store Name",
+  "date": "YYYY-MM-DD",
+  "total": 123.45,
+  "items": [
+    {
+      "description": "Item name",
+      "amount": 10.99,
+      "category": "groceries"
+    }
+  ],
+  "confidence": 0.95
+}
+
+${userQuery != null ? '\nUser note: $userQuery' : ''}
+
+Be precise with numbers and categories. If you cannot read something clearly, set confidence lower.''';
+
+      // Call Groq Vision API
+      final response = await http.post(
+        Uri.parse('$_baseUrl/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'llama-3.2-11b-vision-preview',
+          'messages': [
+            {
+              'role': 'user',
+              'content': [
+                {
+                  'type': 'text',
+                  'text': prompt,
+                },
+                {
+                  'type': 'image_url',
+                  'image_url': {
+                    'url': 'data:$mimeType;base64,$base64Image',
+                  },
+                },
+              ],
+            }
+          ],
+          'temperature': 0.1, // Low temperature for accuracy
+          'max_tokens': 2048,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        debugPrint('Groq Vision API error: ${response.statusCode} - ${response.body}');
+        throw AIServiceException(
+          'Vision API error (${response.statusCode}). Please try again.',
+        );
+      }
+
+      final data = jsonDecode(response.body);
+      final content = data['choices']?[0]?['message']?['content'] as String?;
+      
+      if (content == null) {
+        throw AIServiceException('Received empty response from Vision API');
+      }
+
+      // Parse the JSON response
+      // The AI might wrap JSON in code blocks, so extract it
+      String jsonContent = content.trim();
+      if (jsonContent.contains('```json')) {
+        final startIndex = jsonContent.indexOf('```json') + 7;
+        final endIndex = jsonContent.lastIndexOf('```');
+        jsonContent = jsonContent.substring(startIndex, endIndex).trim();
+      } else if (jsonContent.contains('```')) {
+        final startIndex = jsonContent.indexOf('```') + 3;
+        final endIndex = jsonContent.lastIndexOf('```');
+        jsonContent = jsonContent.substring(startIndex, endIndex).trim();
+      }
+
+      final billData = jsonDecode(jsonContent) as Map<String, dynamic>;
+      
+      // Extract transaction data
+      final merchant = billData['merchant'] as String? ?? 'Unknown Merchant';
+      final dateStr = billData['date'] as String?;
+      final total = (billData['total'] as num?)?.toDouble() ?? 0.0;
+      final confidence = (billData['confidence'] as num?)?.toDouble() ?? 0.5;
+      final items = billData['items'] as List<dynamic>? ?? [];
+
+      // Parse date
+      DateTime transactionDate;
+      try {
+        transactionDate = dateStr != null 
+            ? DateTime.parse(dateStr) 
+            : DateTime.now();
+      } catch (e) {
+        transactionDate = DateTime.now();
+      }
+
+      // Build transactions list
+      final transactions = <Map<String, dynamic>>[];
+      
+      if (items.isNotEmpty) {
+        // Create individual transactions for each item
+        for (final item in items) {
+          if (item is Map<String, dynamic>) {
+            final description = item['description'] as String? ?? 'Item';
+            final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
+            final category = item['category'] as String? ?? 'other';
+            
+            if (amount > 0) {
+              transactions.add({
+                'merchant': merchant,
+                'description': description,
+                'amount': amount,
+                'category': category,
+                'date': transactionDate.toIso8601String(),
+              });
+            }
+          }
+        }
+      } else if (total > 0) {
+        // Create a single transaction for the total
+        transactions.add({
+          'merchant': merchant,
+          'description': merchant,
+          'amount': total,
+          'category': 'other',
+          'date': transactionDate.toIso8601String(),
+        });
+      }
+
+      // Build response message
+      final itemCount = transactions.length;
+      String message;
+      
+      if (itemCount == 0) {
+        message = 'I couldn\'t extract any transaction details from this image. Please make sure the bill is clearly visible and try again.';
+      } else if (itemCount == 1) {
+        final txn = transactions[0];
+        message = '''I found a transaction from **$merchant** dated **${_formatDate(transactionDate)}**:
+
+💰 **Total:** \$${txn['amount'].toStringAsFixed(2)}
+📁 **Category:** ${txn['category']}
+
+${confidence >= 0.8 ? '✅ High confidence' : confidence >= 0.6 ? '⚠️ Medium confidence - please review' : '⚠️ Low confidence - please verify details'}
+
+Would you like me to add this transaction to your records?''';
+      } else {
+        final itemList = transactions
+            .map((t) => '  • ${t['description']}: \$${t['amount'].toStringAsFixed(2)}')
+            .join('\n');
+        
+        message = '''I extracted **$itemCount items** from **$merchant** dated **${_formatDate(transactionDate)}**:
+
+$itemList
+
+💰 **Total:** \$${total.toStringAsFixed(2)}
+
+${confidence >= 0.8 ? '✅ High confidence' : confidence >= 0.6 ? '⚠️ Medium confidence - please review' : '⚠️ Low confidence - please verify details'}
+
+Would you like me to add these transactions to your records?''';
+      }
+
+      return BillAnalysisResponse(
+        message: message,
+        transactions: transactions,
+        confidence: confidence,
+      );
+    } catch (e) {
+      debugPrint('Bill analysis error: $e');
+      if (e is AIServiceException) {
+        rethrow;
+      }
+      throw AIServiceException(
+        'Failed to analyze bill: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Format date for display
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
 

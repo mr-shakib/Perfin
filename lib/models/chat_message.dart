@@ -23,6 +23,7 @@ class ChatMessage {
   final MessageRole role;
   final DateTime timestamp;
   final Map<String, dynamic>? metadata;
+  final String? imagePath; // Path to attached image (bills, receipts, etc.)
 
   ChatMessage({
     required this.id,
@@ -31,6 +32,7 @@ class ChatMessage {
     required this.role,
     required this.timestamp,
     this.metadata,
+    this.imagePath,
   });
 
   /// Convert ChatMessage instance to JSON map
@@ -42,6 +44,7 @@ class ChatMessage {
       'role': role.toJson(),
       'timestamp': timestamp.toIso8601String(),
       'metadata': metadata,
+      'imagePath': imagePath,
     };
   }
 
@@ -54,6 +57,7 @@ class ChatMessage {
       role: MessageRole.fromJson(json['role'] as String),
       timestamp: DateTime.parse(json['timestamp'] as String),
       metadata: json['metadata'] as Map<String, dynamic>?,
+      imagePath: json['imagePath'] as String?,
     );
   }
 

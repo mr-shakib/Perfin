@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -33,11 +34,17 @@ class _CopilotScreenState extends State<CopilotScreen> {
     super.dispose();
   }
 
-  void _handleSendMessage(String message) {
-    if (message.trim().isEmpty) return;
+  void _handleSendMessage(String message, {String? imagePath}) {
+    if (message.trim().isEmpty && imagePath == null) return;
 
     final aiProvider = context.read<AIProvider>();
-    aiProvider.sendCopilotQuery(message);
+    if (imagePath != null) {
+      // Send message with image for bill analysis
+      aiProvider.sendCopilotQueryWithImage(message, imagePath);
+    } else {
+      // Send regular text message
+      aiProvider.sendCopilotQuery(message);
+    }
     _messageController.clear();
 
     // Auto-scroll to bottom after sending message
@@ -227,36 +234,57 @@ class _CopilotScreenState extends State<CopilotScreen> {
   Widget _buildUserMessage(ChatMessage message) {
     return GestureDetector(
       onLongPress: () => _copyMessage(message.content),
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                message.content,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                  height: 1.4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Image preview (if attached)
+          if (message.imagePath != null && File(message.imagePath!).existsSync())
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(message.imagePath!),
+                  height: 200,
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.copy,
-              size: 14,
-              color: Colors.white.withValues(alpha: 0.5),
+          
+          // Message bubble
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
-          ],
-        ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    message.content,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.copy,
+                  size: 14,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
