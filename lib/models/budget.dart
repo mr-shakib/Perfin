@@ -52,6 +52,18 @@ class Budget {
     );
   }
 
+  /// Create Budget instance from Supabase JSON (snake_case)
+  factory Budget.fromSupabaseJson(Map<String, dynamic> json) {
+    return Budget(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      year: json['year'] as int,
+      month: json['month'] as int,
+      isActive: true, // isActive is local-only field
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

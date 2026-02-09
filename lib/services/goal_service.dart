@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 import '../models/goal.dart';
 import 'storage_service.dart';
 import 'transaction_service.dart';
@@ -321,7 +322,7 @@ class GoalService {
 
   /// Generate a unique ID for a goal
   String _generateId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
+    return const Uuid().v4();
   }
 }
 

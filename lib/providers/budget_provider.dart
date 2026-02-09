@@ -114,6 +114,7 @@ class BudgetProvider extends ChangeNotifier {
   }
 
   /// Load budgets from storage
+  /// Pulls from Supabase first to ensure data is up-to-date
   /// Sets state to loading during fetch
   /// Sets state to loaded on success
   /// Sets state to error on failure with error message
@@ -130,6 +131,18 @@ class BudgetProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // First, try to pull data from Supabase to get latest data
+      if (_syncService != null) {
+        try {
+          await _syncService.pullFromSupabase(_userId!);
+          debugPrint('Successfully pulled budgets from Supabase');
+        } catch (e) {
+          // If pull fails, continue with local data
+          debugPrint('Failed to pull budgets from Supabase, using local data: $e');
+        }
+      }
+      
+      // Load from local storage (which now has the latest data)
       final now = DateTime.now();
       _monthlyBudget = await _budgetService.fetchMonthlyBudget(
         _userId!,

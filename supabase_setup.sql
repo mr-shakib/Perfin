@@ -48,10 +48,16 @@ CREATE TABLE IF NOT EXISTS goals (
   current_amount DECIMAL(10,2) DEFAULT 0,
   target_date TIMESTAMP WITH TIME ZONE,
   linked_category_id TEXT,
+  is_manual_tracking BOOLEAN DEFAULT FALSE,
   is_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add goal-related fields to transactions table
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS is_synced BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS linked_goal_id UUID REFERENCES goals(id) ON DELETE SET NULL;
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -132,6 +138,8 @@ CREATE POLICY "Users can delete own goals" ON goals
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_is_synced ON transactions(is_synced);
+CREATE INDEX IF NOT EXISTS idx_transactions_linked_goal_id ON transactions(linked_goal_id);
 CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets(user_id);
 CREATE INDEX IF NOT EXISTS idx_budgets_year_month ON budgets(year, month);
 CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals(user_id);

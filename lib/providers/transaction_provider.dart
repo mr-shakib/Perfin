@@ -104,6 +104,7 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// Load transactions from storage
+  /// Pulls from Supabase first to ensure data is up-to-date
   /// Sets state to loading during fetch
   /// Sets state to loaded on success
   /// Sets state to error on failure with error message
@@ -120,6 +121,18 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // First, try to pull data from Supabase to get latest data
+      if (_syncService != null) {
+        try {
+          await _syncService.pullFromSupabase(_userId!);
+          debugPrint('Successfully pulled data from Supabase');
+        } catch (e) {
+          // If pull fails, continue with local data
+          debugPrint('Failed to pull from Supabase, using local data: $e');
+        }
+      }
+      
+      // Load from local storage (which now has the latest data)
       _transactions = await _transactionService.fetchTransactions(_userId!);
       _state = LoadingState.loaded;
       _errorMessage = null;

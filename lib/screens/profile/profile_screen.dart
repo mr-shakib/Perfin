@@ -204,6 +204,14 @@ class ProfileScreen extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       await authProvider.logout();
+      
+      // Navigate to login screen and clear navigation stack
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+      }
     }
   }
 }

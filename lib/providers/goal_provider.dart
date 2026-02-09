@@ -34,12 +34,25 @@ class GoalProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   /// Load all goals for the current user
+  /// Pulls from Supabase first to ensure data is up-to-date
   Future<void> loadGoals(String userId) async {
     _state = LoadingState.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      // First, try to pull data from Supabase to get latest data
+      if (_syncService != null) {
+        try {
+          await _syncService.pullFromSupabase(userId);
+          debugPrint('Successfully pulled goals from Supabase');
+        } catch (e) {
+          // If pull fails, continue with local data
+          debugPrint('Failed to pull goals from Supabase, using local data: $e');
+        }
+      }
+      
+      // Load from local storage (which now has the latest data)
       _goals = await _goalService.getUserGoals(
         userId: userId,
         includeCompleted: true,
@@ -137,6 +150,14 @@ class GoalProvider extends ChangeNotifier {
       final index = _goals.indexWhere((g) => g.id == goalId);
       if (index != -1) {
         _goals[index] = updatedGoal;
+
+        // Queue sync operation for Supabase
+        await _queueSyncOperation(
+          operationType: 'update',
+          entityId: updatedGoal.id,
+          data: updatedGoal.toSupabaseJson(),
+        );
+
         notifyListeners();
       }
     } catch (e) {
@@ -185,6 +206,14 @@ class GoalProvider extends ChangeNotifier {
       final index = _goals.indexWhere((g) => g.id == goalId);
       if (index != -1) {
         _goals[index] = updatedGoal;
+
+        // Queue sync operation for Supabase
+        await _queueSyncOperation(
+          operationType: 'update',
+          entityId: updatedGoal.id,
+          data: updatedGoal.toSupabaseJson(),
+        );
+
         notifyListeners();
       }
     } catch (e) {

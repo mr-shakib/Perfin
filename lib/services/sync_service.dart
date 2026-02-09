@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/sync_operation.dart';
 import '../models/sync_result.dart';
+import '../models/transaction.dart';
+import '../models/budget.dart';
+import '../models/goal.dart';
 import 'storage_service.dart';
 
 /// Service responsible for offline data synchronization
@@ -147,6 +150,119 @@ class SyncService {
     }
   }
 
+  /// Pull all data from Supabase and save to local storage
+  /// This should be called when user logs in to restore their data
+  Future<void> pullFromSupabase(String userId) async {
+    try {
+      // Pull transactions
+      await _pullTransactions(userId);
+      
+      // Pull budgets
+      await _pullBudgets(userId);
+      
+      // Pull goals
+      await _pullGoals(userId);
+      
+      // Update last sync time
+      await _updateLastSyncTime(userId);
+      
+      debugPrint('Successfully pulled data from Supabase for user: $userId');
+    } catch (e) {
+      debugPrint('Failed to pull from Supabase: $e');
+      throw SyncServiceException('Failed to pull from Supabase: ${e.toString()}');
+    }
+  }
+
+  /// Pull transactions from Supabase
+  Future<void> _pullTransactions(String userId) async {
+    try {
+      final response = await _supabase
+          .from('transactions')
+          .select()
+          .eq('user_id', userId);
+
+      if (response.isEmpty) {
+        debugPrint('No transactions found in Supabase');
+        return;
+      }
+
+      final transactions = (response as List)
+          .map((json) => Transaction.fromSupabaseJson(json))
+          .toList();
+
+      // Save to local storage
+      final key = 'transactions_$userId';
+      final jsonList = transactions.map((t) => t.toJson()).toList();
+      final jsonString = jsonEncode(jsonList);
+      await _storageService.save(key, jsonString);
+      
+      debugPrint('Pulled ${transactions.length} transactions from Supabase');
+    } catch (e) {
+      debugPrint('Error pulling transactions: $e');
+      rethrow;
+    }
+  }
+
+  /// Pull budgets from Supabase
+  Future<void> _pullBudgets(String userId) async {
+    try {
+      final response = await _supabase
+          .from('budgets')
+          .select()
+          .eq('user_id', userId);
+
+      if (response.isEmpty) {
+        debugPrint('No budgets found in Supabase');
+        return;
+      }
+
+      final budgets = (response as List)
+          .map((json) => Budget.fromSupabaseJson(json))
+          .toList();
+
+      // Save to local storage
+      final key = 'budgets_$userId';
+      final jsonList = budgets.map((b) => b.toJson()).toList();
+      final jsonString = jsonEncode(jsonList);
+      await _storageService.save(key, jsonString);
+      
+      debugPrint('Pulled ${budgets.length} budgets from Supabase');
+    } catch (e) {
+      debugPrint('Error pulling budgets: $e');
+      rethrow;
+    }
+  }
+
+  /// Pull goals from Supabase
+  Future<void> _pullGoals(String userId) async {
+    try {
+      final response = await _supabase
+          .from('goals')
+          .select()
+          .eq('user_id', userId);
+
+      if (response.isEmpty) {
+        debugPrint('No goals found in Supabase');
+        return;
+      }
+
+      final goals = (response as List)
+          .map((json) => Goal.fromSupabaseJson(json))
+          .toList();
+
+      // Save to local storage
+      final key = 'goals_$userId';
+      final jsonList = goals.map((g) => g.toJson()).toList();
+      final jsonString = jsonEncode(jsonList);
+      await _storageService.save(key, jsonString);
+      
+      debugPrint('Pulled ${goals.length} goals from Supabase');
+    } catch (e) {
+      debugPrint('Error pulling goals: $e');
+      rethrow;
+    }
+  }
+
   /// Get current sync status
   /// Returns information about pending operations and last sync time
   Future<Map<String, dynamic>> getSyncStatus() async {
@@ -270,13 +386,17 @@ class SyncService {
 
       switch (operation.operationType) {
         case 'create':
-          await _supabase.from('goals').insert(data);
+          await _supabase
+              .from('goals')
+              .insert(data)
+              .select();
           break;
         case 'update':
           await _supabase
               .from('goals')
               .update(data)
-              .eq('id', operation.entityId);
+              .eq('id', operation.entityId)
+              .select();
           break;
         case 'delete':
           await _supabase

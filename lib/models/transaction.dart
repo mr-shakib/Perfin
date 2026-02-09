@@ -85,6 +85,7 @@ class Transaction {
       'date': date.toIso8601String(),
       'notes': notes,
       'user_id': userId, // Note: Supabase uses snake_case
+      'linked_goal_id': linkedGoalId,
     };
   }
 
@@ -100,6 +101,21 @@ class Transaction {
       userId: json['userId'] as String,
       isSynced: json['isSynced'] as bool? ?? true,
       linkedGoalId: json['linkedGoalId'] as String?,
+    );
+  }
+
+  /// Create Transaction instance from Supabase JSON (snake_case)
+  factory Transaction.fromSupabaseJson(Map<String, dynamic> json) {
+    return Transaction(
+      id: json['id'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      category: json['category'] as String,
+      type: TransactionType.fromJson(json['type'] as String),
+      date: DateTime.parse(json['date'] as String),
+      notes: json['notes'] as String?,
+      userId: json['user_id'] as String,
+      isSynced: true, // Data from Supabase is already synced
+      linkedGoalId: json['linked_goal_id'] as String?,
     );
   }
 

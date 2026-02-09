@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/currency_provider.dart';
+import '../../../services/sync_service.dart';
 import '../budget_management_screen.dart';
 import '../category_management_screen.dart';
 import '../privacy_settings_screen.dart';
@@ -95,6 +96,13 @@ class SettingsList extends StatelessWidget {
                   builder: (context) => const PrivacySettingsScreen(),
                 ),
               ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            _buildSyncButton(
+              context: context,
+              userId: authProvider.user?.id ?? '',
             ),
             
             const SizedBox(height: 12),
@@ -208,6 +216,205 @@ class SettingsList extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSyncButton({
+    required BuildContext context,
+    required String userId,
+  }) {
+    final syncService = Provider.of<SyncService>(context, listen: false);
+    
+    return FutureBuilder<Map<String, dynamic>>(
+      future: syncService.getSyncStatus(),
+      builder: (context, snapshot) {
+        final syncStatus = snapshot.data;
+        final pendingCount = syncStatus?['pendingCount'] ?? 0;
+        final failedCount = syncStatus?['failedCount'] ?? 0;
+        
+        String subtitle;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          subtitle = 'Loading status...';
+        } else if (pendingCount > 0) {
+          subtitle = '$pendingCount pending • Tap to sync';
+        } else if (failedCount > 0) {
+          subtitle = '$failedCount failed • Tap to retry';
+        } else {
+          subtitle = 'All data synced';
+        }
+        
+        return _buildSyncActionButton(
+          context: context,
+          userId: userId,
+          subtitle: subtitle,
+          hasPendingOrFailed: pendingCount > 0 || failedCount > 0,
+        );
+      },
+    );
+  }
+
+  Widget _buildSyncActionButton({
+    required BuildContext context,
+    required String userId,
+    required String subtitle,
+    required bool hasPendingOrFailed,
+  }) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isSyncing = false;
+        
+        return GestureDetector(
+          onTap: isSyncing ? null : () async {
+            if (userId.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please log in to sync data'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
+            
+            setState(() => isSyncing = true);
+            
+            try {
+              final syncService = Provider.of<SyncService>(context, listen: false);
+              
+              // Push local changes to Supabase
+              final result = await syncService.forceSyncAll(userId: userId);
+              
+              // Pull latest data from Supabase
+              try {
+                await syncService.pullFromSupabase(userId);
+              } catch (e) {
+                debugPrint('Failed to pull from Supabase: $e');
+              }
+              
+              if (context.mounted) {
+                if (result.failureCount > 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Synced ${result.successCount} items, ${result.failureCount} failed',
+                      ),
+                      backgroundColor: Colors.orange,
+                      action: SnackBarAction(
+                        label: 'Retry',
+                        textColor: Colors.white,
+                        onPressed: () {},
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✓ Successfully synced all data'),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+                setState(() => isSyncing = false);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Sync failed: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                setState(() => isSyncing = false);
+              }
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: hasPendingOrFailed 
+                  ? const Color(0xFFFFF9E6)
+                  : AppColors.creamLight,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: hasPendingOrFailed 
+                    ? const Color(0xFFFFE5B4)
+                    : const Color(0xFFF0F0F0),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: hasPendingOrFailed
+                        ? const Color(0xFFFFF4D6)
+                        : AppColors.creamCard,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: isSyncing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFFFF9500),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.sync,
+                          color: hasPendingOrFailed
+                              ? const Color(0xFFFF9500)
+                              : const Color(0xFF1A1A1A),
+                          size: 20,
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sync Data',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: hasPendingOrFailed
+                              ? const Color(0xFFFF9500)
+                              : const Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isSyncing ? 'Syncing...' : subtitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF999999),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  isSyncing ? Icons.hourglass_empty : Icons.chevron_right,
+                  color: const Color(0xFFCCCCCC),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

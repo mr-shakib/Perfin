@@ -207,6 +207,9 @@ class MyApp extends StatelessWidget {
           create: (_) => OnboardingProvider(onboardingService),
         ),
 
+        // SyncService - independent provider for sync functionality
+        Provider<SyncService>(create: (_) => syncService),
+
         // AuthProvider - independent of other providers
         ChangeNotifierProvider(create: (_) => AuthProvider(authService)),
 
