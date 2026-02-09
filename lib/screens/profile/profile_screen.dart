@@ -4,7 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../theme/app_colors.dart';
-import 'widgets/user_info_section.dart';
+import 'widgets/profile_card.dart';
 import 'widgets/settings_list.dart';
 
 /// Profile screen - Clean Minimal Design
@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.neutral100,
       body: user == null
           ? const Center(
               child: Text('Please log in to view your profile'),
@@ -37,29 +37,42 @@ class ProfileScreen extends StatelessWidget {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Header that scrolls away
+                // Minimal header with settings icon
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             'Profile',
                             style: TextStyle(
-                              fontSize: 32,
+                              fontSize: 28,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF1A1A1A),
-                              letterSpacing: -1,
+                              letterSpacing: -0.5,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined),
-                            iconSize: 28,
-                            color: const Color(0xFF1A1A1A),
-                            onPressed: () {},
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.06),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.settings_outlined),
+                              iconSize: 24,
+                              color: AppColors.primary,
+                              onPressed: () {},
+                            ),
                           ),
                         ],
                       ),
@@ -72,39 +85,44 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 100),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      // User Info Section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: UserInfoSection(user: user),
+                      const SizedBox(height: 24),
+                      
+                      // Profile Card
+                      ProfileCardElegant(
+                        userName: user.name,
+                        userEmail: user.email,
+                        avatarUrl: 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(user.name)}&size=128&background=667EEA&color=fff',
+                        totalTransactions: transactionProvider.transactions.length,
+                        accountBalance: transactionProvider.currentBalance,
                       ),
                       
                       const SizedBox(height: 32),
 
                       // Settings List
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: SettingsList(
                           authProvider: authProvider,
                           themeProvider: themeProvider,
                         ),
                       ),
                       
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
                       // Logout Button
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: _buildLogoutButton(context, authProvider),
                       ),
                       
                       const SizedBox(height: 24),
 
                       // App Version
-                      const Center(
+                      Center(
                         child: Text(
                           'Perfin v1.0.0',
                           style: TextStyle(
-                            color: Color(0xFF999999),
+                            color: AppColors.neutral500,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -122,28 +140,31 @@ class ProfileScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => _handleLogout(context, authProvider),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF5F5),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFFFE5E5),
-            width: 1,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.error.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.logout,
-              color: Color(0xFFFF3B30),
-              size: 20,
+              Icons.logout_rounded,
+              color: AppColors.error,
+              size: 22,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 10),
             Text(
               'Logout',
               style: TextStyle(
-                color: Color(0xFFFF3B30),
+                color: AppColors.error,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

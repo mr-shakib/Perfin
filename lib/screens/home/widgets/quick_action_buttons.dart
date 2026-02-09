@@ -4,7 +4,7 @@ import '../../budget/manage_budget_screen.dart';
 import '../../insights/insights_screen.dart';
 import '../../../theme/app_colors.dart';
 
-/// Quick Action Buttons - Clean Minimal Design
+/// Quick Action Buttons - Modern Circular Design
 /// Requirements: 1.9
 class QuickActionButtons extends StatelessWidget {
   const QuickActionButtons({super.key});
@@ -12,107 +12,116 @@ class QuickActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(
-          child: _buildButton(
-            context,
-            'Add',
-            Icons.add,
-            const Color(0xFF1A1A1A),
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddTransactionScreen(),
-                ),
-              );
-            },
-          ),
+        _buildActionButton(
+          context,
+          'Add',
+          Icons.add_rounded,
+          AppColors.primary,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddTransactionScreen(),
+              ),
+            );
+          },
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildButton(
-            context,
-            'Insights',
-            Icons.bar_chart,
-            AppColors.creamCard,
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InsightsScreen(),
-                ),
-              );
-            },
-          ),
+        _buildActionButton(
+          context,
+          'Transfer',
+          Icons.swap_horiz_rounded,
+          AppColors.secondary,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddTransactionScreen(),
+              ),
+            );
+          },
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildButton(
-            context,
-            'Budget',
-            Icons.pie_chart_outline,
-            AppColors.creamCard,
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ManageBudgetScreen(),
-                ),
-              );
-            },
-          ),
+        _buildActionButton(
+          context,
+          'Insights',
+          Icons.bar_chart_rounded,
+          AppColors.info,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InsightsScreen(),
+              ),
+            );
+          },
+        ),
+        _buildActionButton(
+          context,
+          'Budget',
+          Icons.account_balance_wallet_rounded,
+          AppColors.warning,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ManageBudgetScreen(),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildButton(
+  Widget _buildActionButton(
     BuildContext context,
     String label,
     IconData icon,
-    Color bgColor,
+    Color color,
     VoidCallback? onTap,
   ) {
-    final isDark = bgColor == const Color(0xFF1A1A1A);
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE5E5E5),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              children: [
-                Icon(
+    return Column(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(32),
+              child: Center(
+                child: Icon(
                   icon,
-                  color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                  color: Colors.white,
                   size: 28,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF1A1A1A),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

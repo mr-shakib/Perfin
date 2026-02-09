@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.neutral100,
       body: Consumer3<TransactionProvider, BudgetProvider, AIProvider>(
         builder: (context, transactionProvider, budgetProvider, aiProvider, _) {
           if (transactionProvider.state == LoadingState.loading &&
@@ -79,29 +79,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Header that scrolls away
+                // Minimal header with notification icon
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Text(
-                            'Overview',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                              letterSpacing: -1,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.06),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_none),
-                            iconSize: 28,
-                            color: const Color(0xFF1A1A1A),
-                            onPressed: () {},
+                            child: IconButton(
+                              icon: const Icon(Icons.notifications_none_rounded),
+                              iconSize: 24,
+                              color: AppColors.primary,
+                              onPressed: () {},
+                            ),
                           ),
                         ],
                       ),
@@ -114,36 +118,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.only(bottom: 100),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
+                      const SizedBox(height: 16),
+                      
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 24),
                         child: FinancialSummaryCard(),
                       ),
                       
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
 
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 24),
                         child: QuickActionButtons(),
                       ),
                       
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
 
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: AISummaryCard(),
-                      ),
-                      
-                      const SizedBox(height: 32),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 24),
                         child: RecentTransactionsList(),
                       ),
                       
                       const SizedBox(height: 32),
 
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: AISummaryCard(),
+                      ),
+                      
+                      const SizedBox(height: 32),
+
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
                         child: BudgetStatusList(),
                       ),
                     ]),
@@ -158,9 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: CircularProgressIndicator(
-        color: Color(0xFF1A1A1A),
+        color: AppColors.primary,
       ),
     );
   }
@@ -168,33 +174,75 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildErrorState(String? errorMessage) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '😕',
-              style: TextStyle(fontSize: 64),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              errorMessage ?? 'Something went wrong',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF666666),
+        padding: const EdgeInsets.all(40),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _onRefresh,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A1A1A),
-                foregroundColor: Colors.white,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: AppColors.error,
+                ),
               ),
-              child: const Text('Try Again'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              const Text(
+                'Oops!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                errorMessage ?? 'Something went wrong',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColors.neutral600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _onRefresh,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Try Again',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/currency_provider.dart';
+import '../../../theme/app_colors.dart';
 import 'edit_profile_form.dart';
 
-/// User info section - Enhanced Profile Card Design
+/// User info section - Modern Card Design
 class UserInfoSection extends StatelessWidget {
   final User user;
 
@@ -20,144 +21,153 @@ class UserInfoSection extends StatelessWidget {
     final currencyProvider = Provider.of<CurrencyProvider>(context);
 
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Avatar and User Info Row
-          Row(
+          // Header with gradient background
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              // Avatar
+              // Gradient Header
               Container(
-                width: 80,
-                height: 80,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 2,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primaryDark,
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    _getInitials(user.name),
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: () => _showEditProfileDialog(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              const SizedBox(width: 16),
-
-              // User Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+              // Overlapping Avatar
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: -40,
+                child: Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: Colors.white,
-                        letterSpacing: -0.5,
+                        width: 5,
                       ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.secondary,
+                          AppColors.secondary.withOpacity(0.8),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      user.email,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF999999),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Member since badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    child: Center(
                       child: Text(
-                        'Member since ${_formatMemberSince(user.createdAt)}',
+                        _getInitials(user.name),
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFCCCCCC),
-                          fontWeight: FontWeight.w500,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 52),
 
-          // Financial Stats Cards
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
+          // Stats Row (3 columns)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
               children: [
-                // Balance Row
-                _buildStatRow(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: 'Current Balance',
-                  value: currencyProvider.format(transactionProvider.currentBalance),
-                  isPositive: transactionProvider.currentBalance >= 0,
+                Expanded(
+                  child: _buildStatColumn(
+                    label: 'Balance',
+                    value: _formatValue(transactionProvider.currentBalance),
+                  ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Income and Expense Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMiniStatCard(
-                        icon: Icons.trending_up_outlined,
-                        label: 'Income',
-                        value: currencyProvider.format(transactionProvider.totalIncome),
-                        color: const Color(0xFF4CAF50),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMiniStatCard(
-                        icon: Icons.trending_down_outlined,
-                        label: 'Expenses',
-                        value: currencyProvider.format(transactionProvider.totalExpense),
-                        color: const Color(0xFFFF3B30),
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: AppColors.neutral200,
+                ),
+                Expanded(
+                  child: _buildStatColumn(
+                    label: 'Income',
+                    value: _formatValue(transactionProvider.totalIncome),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: AppColors.neutral200,
+                ),
+                Expanded(
+                  child: _buildStatColumn(
+                    label: 'Expenses',
+                    value: _formatValue(transactionProvider.totalExpense),
+                  ),
                 ),
               ],
             ),
@@ -165,45 +175,30 @@ class UserInfoSection extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Edit Button
-          GestureDetector(
-            onTap: () => _showEditProfileDialog(context),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 14,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.edit_outlined,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Edit Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+          // User Name
+          Text(
+            user.name,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+              letterSpacing: -0.5,
             ),
           ),
+
+          const SizedBox(height: 4),
+
+          // Email / subtitle
+          Text(
+            user.email,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.neutral500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -220,103 +215,39 @@ class UserInfoSection extends StatelessWidget {
     return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
   }
 
-  String _formatMemberSince(DateTime createdAt) {
-    return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+  String _formatValue(double value) {
+    if (value.abs() >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value.abs() >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    }
+    return value.toStringAsFixed(0);
   }
 
-  Widget _buildStatRow({
-    required IconData icon,
+  Widget _buildStatColumn({
     required String label,
     required String value,
-    required bool isPositive,
   }) {
-    return Row(
+    return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 20,
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF999999),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: isPositive ? const Color(0xFF4CAF50) : const Color(0xFFFF3B30),
-                ),
-              ),
-            ],
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.neutral500,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMiniStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                color: color,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF999999),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

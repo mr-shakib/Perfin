@@ -38,7 +38,7 @@ class SettingsList extends StatelessWidget {
               onTap: () => _showThemeSelector(context),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -53,7 +53,7 @@ class SettingsList extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -68,7 +68,7 @@ class SettingsList extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -83,7 +83,7 @@ class SettingsList extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -98,14 +98,14 @@ class SettingsList extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSyncButton(
               context: context,
               userId: authProvider.user?.id ?? '',
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -120,7 +120,7 @@ class SettingsList extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             _buildSettingItem(
               context: context,
@@ -153,35 +153,38 @@ class SettingsList extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppColors.creamLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFF0F0F0),
-            width: 1,
-          ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: isDestructive
-                    ? const Color(0xFFFFF5F5)
-                    : AppColors.creamCard,
-                borderRadius: BorderRadius.circular(12),
+                    ? AppColors.error.withOpacity(0.1)
+                    : AppColors.creamLight,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 icon,
                 color: isDestructive
-                    ? const Color(0xFFFF3B30)
-                    : const Color(0xFF1A1A1A),
-                size: 20,
+                    ? AppColors.error
+                    : AppColors.primary,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,26 +195,26 @@ class SettingsList extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: isDestructive
-                          ? const Color(0xFFFF3B30)
+                          ? AppColors.error
                           : const Color(0xFF1A1A1A),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF999999),
+                      color: AppColors.neutral500,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFFCCCCCC),
-              size: 20,
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.neutral400,
+              size: 24,
             ),
           ],
         ),
@@ -329,56 +332,55 @@ class SettingsList extends StatelessWidget {
             }
           },
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: hasPendingOrFailed 
-                  ? const Color(0xFFFFF9E6)
-                  : AppColors.creamLight,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: hasPendingOrFailed 
-                    ? const Color(0xFFFFE5B4)
-                    : const Color(0xFFF0F0F0),
-                width: 1,
-              ),
+                  ? AppColors.warning.withOpacity(0.1)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: hasPendingOrFailed
-                        ? const Color(0xFFFFF4D6)
-                        : AppColors.creamCard,
-                    borderRadius: BorderRadius.circular(12),
+                        ? AppColors.warning.withOpacity(0.15)
+                        : AppColors.creamLight,
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: isSyncing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: Center(
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFFFF9500),
-                                ),
+                      ? Center(
+                          child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                hasPendingOrFailed
+                                    ? AppColors.warning
+                                    : AppColors.primary,
                               ),
                             ),
                           ),
                         )
                       : Icon(
-                          Icons.sync,
+                          Icons.sync_rounded,
                           color: hasPendingOrFailed
-                              ? const Color(0xFFFF9500)
-                              : const Color(0xFF1A1A1A),
-                          size: 20,
+                              ? AppColors.warning
+                              : AppColors.primary,
+                          size: 22,
                         ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,16 +391,16 @@ class SettingsList extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: hasPendingOrFailed
-                              ? const Color(0xFFFF9500)
+                              ? AppColors.warning
                               : const Color(0xFF1A1A1A),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         isSyncing ? 'Syncing...' : subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF999999),
+                          color: AppColors.neutral500,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -406,9 +408,9 @@ class SettingsList extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  isSyncing ? Icons.hourglass_empty : Icons.chevron_right,
-                  color: const Color(0xFFCCCCCC),
-                  size: 20,
+                  isSyncing ? Icons.hourglass_empty_rounded : Icons.chevron_right_rounded,
+                  color: AppColors.neutral400,
+                  size: 24,
                 ),
               ],
             ),

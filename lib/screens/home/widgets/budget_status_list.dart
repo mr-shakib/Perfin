@@ -4,6 +4,7 @@ import '../../../providers/budget_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../budget/manage_budget_screen.dart';
 
 /// Budget Status List - Clean Minimal Design
 /// Requirements: 1.4-1.6
@@ -19,29 +20,47 @@ class BudgetStatusList extends StatelessWidget {
 
         if (categoryBudgets.isEmpty) {
           return Container(
-            padding: const EdgeInsets.all(40),
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFFE5E5E5),
-                width: 1,
-              ),
-            ),
-            child: const Column(
-              children: [
-                Icon(
-                  Icons.pie_chart_outline,
-                  size: 48,
-                  color: Color(0xFFCCCCCC),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
-                SizedBox(height: 16),
-                Text(
+              ],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.creamLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.pie_chart_outline_rounded,
+                    size: 32,
+                    color: AppColors.neutral400,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
                   'No budgets set',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Create a budget to track your spending',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF999999),
                   ),
                 ),
               ],
@@ -51,26 +70,53 @@ class BudgetStatusList extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.creamLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFE5E5E5),
-              width: 1,
-            ),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Budgets',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A1A),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Budget Overview',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Navigate to budgets screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageBudgetScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'See All',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               ...categoryBudgets.entries.map((entry) {
                 final category = entry.key;
@@ -148,28 +194,31 @@ class BudgetStatusList extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        Stack(
-          children: [
-            Container(
-              height: 8,
+        Container(
+          height: 8,
+          decoration: BoxDecoration(
+            color: AppColors.neutral200,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: utilization.clamp(0.0, 1.0),
+            child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0),
-                borderRadius: BorderRadius.circular(4),
+                color: statusColor,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: statusColor.withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
             ),
-            FractionallySizedBox(
-              widthFactor: utilization.clamp(0.0, 1.0),
-              child: Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
         Text(
           '${currencyProvider.formatWhole(spent)} of ${currencyProvider.formatWhole(budget)}',
