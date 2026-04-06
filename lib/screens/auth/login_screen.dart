@@ -7,8 +7,6 @@ import 'widgets/auth_header.dart';
 import 'widgets/login_form_fields.dart';
 import 'widgets/login_buttons.dart';
 
-
-/// Clean flat design login screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -32,164 +30,72 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = context.read<AuthProvider>();
-    
-    // Show loading indicator
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logging in...'),
-          duration: Duration(seconds: 30),
-        ),
-      );
-    }
-    
-    try {
-      await authProvider.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
 
-      if (!mounted) return;
-      
-      // Hide loading indicator
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      
-      if (authProvider.isAuthenticated) {
-        final onboardingDone = context.read<OnboardingProvider>().isCompleted;
-        Navigator.pushReplacementNamed(
-          context,
-          onboardingDone ? '/dashboard' : '/onboarding/goal',
-        );
-      } else if (authProvider.errorMessage != null) {
-        _showErrorWithOfflineOption(authProvider.errorMessage!);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      
-      // Hide loading indicator
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      
-      // Check if it's a network error
-      if (e.toString().contains('SocketException') || 
-          e.toString().contains('Failed host lookup')) {
-        _showOfflineDialog();
-      } else {
-        _showErrorWithOfflineOption(e.toString());
-      }
+    await authProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (authProvider.isAuthenticated) {
+      final onboardingDone = context.read<OnboardingProvider>().isCompleted;
+      Navigator.pushReplacementNamed(
+        context,
+        onboardingDone ? '/dashboard' : '/onboarding/goal',
+      );
+    } else if (authProvider.errorMessage != null) {
+      _showError(authProvider.errorMessage!);
     }
   }
 
-  void _showErrorWithOfflineOption(String message) {
+  void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Continue Offline',
-          textColor: Colors.white,
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showOfflineDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'No Internet Connection',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
-        content: const Text(
-          'Unable to connect to the server. You can continue using the app offline with limited features, or check your internet connection and try again.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF666666),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Try Again',
-              style: TextStyle(
-                color: Color(0xFF666666),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/dashboard');
-            },
-            child: const Text(
-              'Continue Offline',
-              style: TextStyle(
-                color: Color(0xFF1A1A1A),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: size.height * 0.02),
+                const SizedBox(height: 16),
                 const AuthHeader(),
-                SizedBox(height: size.height * 0.04),
+                const SizedBox(height: 32),
                 const AuthLogo(),
-                SizedBox(height: size.height * 0.025),
+                const SizedBox(height: 24),
                 const AuthTitle(
                   title: 'Welcome Back',
                   subtitle: 'Login to manage your finances',
                 ),
-                SizedBox(height: size.height * 0.04),
+                const SizedBox(height: 32),
                 LoginEmailField(controller: _emailController),
-                SizedBox(height: size.height * 0.02),
+                const SizedBox(height: 16),
                 LoginPasswordField(
                   controller: _passwordController,
                   onSubmit: _handleLogin,
                 ),
-                SizedBox(height: size.height * 0.02),
+                const SizedBox(height: 12),
                 const RememberMeAndForgot(),
-                SizedBox(height: size.height * 0.03),
+                const SizedBox(height: 28),
                 LoginButton(onPressed: _handleLogin),
-                SizedBox(height: size.height * 0.025),
-                const LoginDivider(),
-                SizedBox(height: size.height * 0.025),
-                const SocialLoginButtons(),
-                const Spacer(),
+                const SizedBox(height: 32),
                 const SignUpLink(),
-                SizedBox(height: size.height * 0.02),
+                const SizedBox(height: 24),
               ],
             ),
           ),

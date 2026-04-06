@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme/app_theme.dart';
 import 'config/supabase_config.dart';
+import 'config/ai_config.dart';
 import 'services/hive_storage_service.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
@@ -94,7 +95,7 @@ void main() async {
 
   // GROQ_API_KEY is loaded from .env in development.
   // In production, AI features gracefully degrade when no key is present.
-  final aiApiKey = dotenv.env['GROQ_API_KEY'] ?? '';
+  final aiApiKey = dotenv.env['GROQ_API_KEY'] ?? AIConfig.groqApiKey;
   final aiService = AIService(
     transactionService: transactionService,
     budgetService: budgetService,
