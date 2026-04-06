@@ -93,31 +93,36 @@ class AuthService {
     }
     
     try {
-      // Sign up with Supabase
+      // Sign up with Supabase — name stored in metadata so the DB trigger
+      // can create the profile row without needing an active session.
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
+        data: {'name': name},
       );
-      
+
       if (response.user == null) {
         throw AuthenticationException('Sign up failed');
       }
-      
-      // Create profile in Supabase
-      await _supabase.from('profiles').insert({
-        'user_id': response.user!.id,
-        'name': name,
-      });
-      
-      // Create User model
-      final user = app_models.User(
+
+      // If session is null, Supabase requires email confirmation before the
+      // user can authenticate. Signal this to the caller.
+      if (response.session == null) {
+        throw EmailConfirmationRequiredException(
+          'A confirmation email has been sent to $email. '
+          'Please confirm your email address to continue.',
+        );
+      }
+
+      // Profile is created automatically by the on_auth_user_created trigger.
+      return app_models.User(
         id: response.user!.id,
         name: name,
         email: email,
         createdAt: DateTime.parse(response.user!.createdAt),
       );
-      
-      return user;
+    } on EmailConfirmationRequiredException {
+      rethrow;
     } on AuthException catch (e) {
       throw AuthenticationException(_mapAuthError(e.message));
     } catch (e) {
@@ -254,9 +259,19 @@ class AuthService {
 /// Custom exception for authentication operations
 class AuthenticationException implements Exception {
   final String message;
-  
+
   AuthenticationException(this.message);
-  
+
   @override
   String toString() => 'AuthenticationException: $message';
+}
+
+/// Thrown when Supabase requires email confirmation before the user can log in
+class EmailConfirmationRequiredException implements Exception {
+  final String message;
+
+  EmailConfirmationRequiredException(this.message);
+
+  @override
+  String toString() => 'EmailConfirmationRequiredException: $message';
 }

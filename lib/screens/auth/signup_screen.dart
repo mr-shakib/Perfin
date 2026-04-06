@@ -69,6 +69,33 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  void _showEmailConfirmationDialog(String email) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Check your email',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'We sent a confirmation link to $email.\n\nTap the link in the email, then come back and log in.',
+          style: const TextStyle(fontSize: 15, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            child: const Text('Go to Login'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -197,7 +224,10 @@ class _SignupScreenState extends State<SignupScreen> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     
     if (authProvider.isAuthenticated) {
+      // New users always go through onboarding after signup
       Navigator.pushReplacementNamed(context, '/onboarding/goal');
+    } else if (authProvider.needsEmailConfirmation) {
+      _showEmailConfirmationDialog(_emailController.text.trim());
     } else if (authProvider.errorMessage != null) {
       _showErrorSnackbar(authProvider.errorMessage!);
     }

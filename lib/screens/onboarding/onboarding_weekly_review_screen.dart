@@ -263,12 +263,9 @@ class _OnboardingWeeklyReviewScreenState extends State<OnboardingWeeklyReviewScr
           final navigator = Navigator.of(context);
           final onboardingProvider = context.read<OnboardingProvider>();
           
-          // Save the weekly review day
           await onboardingProvider.setWeeklyReviewDay(_selectedDay);
-          // Mark onboarding as completed
           await onboardingProvider.completeOnboarding();
-          // Navigate to login
-          navigator.pushReplacementNamed('/login');
+          navigator.pushReplacementNamed('/dashboard');
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _kButtonNavy,

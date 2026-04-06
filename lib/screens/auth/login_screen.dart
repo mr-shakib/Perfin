@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/onboarding_provider.dart';
 import '../../theme/app_colors.dart';
 import 'widgets/auth_header.dart';
 import 'widgets/login_form_fields.dart';
@@ -54,7 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       
       if (authProvider.isAuthenticated) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        final onboardingDone = context.read<OnboardingProvider>().isCompleted;
+        Navigator.pushReplacementNamed(
+          context,
+          onboardingDone ? '/dashboard' : '/onboarding/goal',
+        );
       } else if (authProvider.errorMessage != null) {
         _showErrorWithOfflineOption(authProvider.errorMessage!);
       }

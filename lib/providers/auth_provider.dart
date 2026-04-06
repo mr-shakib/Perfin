@@ -7,6 +7,7 @@ enum AuthState {
   idle,
   loading,
   authenticated,
+  awaitingEmailConfirmation,
   error,
 }
 
@@ -26,6 +27,8 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
   
   bool get isAuthenticated => _state == AuthState.authenticated && _user != null;
+
+  bool get needsEmailConfirmation => _state == AuthState.awaitingEmailConfirmation;
   
   AuthState get state => _state;
   
@@ -75,16 +78,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Sign up with Supabase
       final user = await _authService.signUp(email, password, name);
-      
-      // Save session to local storage
       await _authService.saveSession(user);
-      
-      // Update state
       _user = user;
       _state = AuthState.authenticated;
       _errorMessage = null;
+      notifyListeners();
+    } on EmailConfirmationRequiredException catch (e) {
+      _user = null;
+      _state = AuthState.awaitingEmailConfirmation;
+      _errorMessage = e.message;
       notifyListeners();
     } on AuthenticationException catch (e) {
       _user = null;

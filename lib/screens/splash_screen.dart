@@ -291,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       height: 56,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/onboarding/goal');
+          Navigator.pushNamed(context, '/signup');
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _kButtonNavy,
