@@ -25,13 +25,15 @@ class AuthProvider extends ChangeNotifier {
 
   // Public getters
   User? get user => _user;
-  
-  bool get isAuthenticated => _state == AuthState.authenticated && _user != null;
 
-  bool get needsEmailConfirmation => _state == AuthState.awaitingEmailConfirmation;
-  
+  bool get isAuthenticated =>
+      _state == AuthState.authenticated && _user != null;
+
+  bool get needsEmailConfirmation =>
+      _state == AuthState.awaitingEmailConfirmation;
+
   AuthState get state => _state;
-  
+
   String? get errorMessage => _errorMessage;
 
   /// Authenticate user with email and password
@@ -46,10 +48,10 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Authenticate user
       final user = await _authService.authenticate(email, password);
-      
+
       // Save session
       await _authService.saveSession(user);
-      
+
       // Update state
       _user = user;
       _state = AuthState.authenticated;
@@ -111,10 +113,10 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Sign out from Supabase
       await _authService.signOut();
-      
+
       // Clear local session
       await _authService.clearSession();
-      
+
       // Reset state
       _user = null;
       _state = AuthState.idle;
@@ -129,6 +131,31 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Permanently delete the authenticated account and reset local auth state.
+  Future<void> deleteAccount() async {
+    _state = AuthState.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount();
+      _user = null;
+      _state = AuthState.idle;
+      _errorMessage = null;
+      notifyListeners();
+    } on AuthenticationException catch (e) {
+      _state = AuthState.error;
+      _errorMessage = e.message;
+      notifyListeners();
+      rethrow;
+    } catch (_) {
+      _state = AuthState.error;
+      _errorMessage = 'Failed to delete account';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Restore authentication session from storage
   /// Called on app startup to restore previous session
   /// Sets state to authenticated if valid session exists
@@ -140,7 +167,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Load session from storage
       final user = await _authService.loadSession();
-      
+
       if (user != null) {
         // Valid session found
         _user = user;

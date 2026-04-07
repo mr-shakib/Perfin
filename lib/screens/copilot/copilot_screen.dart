@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/ai_provider.dart';
+import '../../providers/subscription_provider.dart';
 import '../../providers/transaction_provider.dart';
-import '../../providers/budget_provider.dart';
 import '../../models/chat_message.dart';
 import '../../theme/app_colors.dart';
 import 'widgets/ai_response_card.dart';
@@ -33,8 +33,37 @@ class _CopilotScreenState extends State<CopilotScreen> {
     super.dispose();
   }
 
-  void _handleSendMessage(String message) {
-    if (message.trim().isEmpty) return;
+  Future<void> _handleSendMessage(String message) async {
+    if (message.trim().isEmpty) {
+      return;
+    }
+
+    final subscriptionProvider = context.read<SubscriptionProvider>();
+    if (!subscriptionProvider.canConsumeAiPrompt()) {
+      if (!mounted) {
+        return;
+      }
+      _showAiQuotaReachedDialog(subscriptionProvider);
+      return;
+    }
+
+    final canConsumePrompt = await subscriptionProvider.tryConsumeAiPrompt();
+    if (!canConsumePrompt) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to send message right now. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
 
     final aiProvider = context.read<AIProvider>();
     aiProvider.sendCopilotQuery(message);
@@ -63,8 +92,8 @@ class _CopilotScreenState extends State<CopilotScreen> {
       body: Stack(
         children: [
           // Main content
-          Consumer<AIProvider>(
-            builder: (context, aiProvider, _) {
+          Consumer2<AIProvider, SubscriptionProvider>(
+            builder: (context, aiProvider, subscriptionProvider, _) {
               final hasMessages = aiProvider.chatHistory.isNotEmpty;
 
               return CustomScrollView(
@@ -93,13 +122,17 @@ class _CopilotScreenState extends State<CopilotScreen> {
                             ),
                             Row(
                               children: [
+                                _buildUsageBadge(subscriptionProvider),
+                                const SizedBox(width: 8),
                                 // New conversation button
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline),
                                   iconSize: 24,
                                   color: const Color(0xFF666666),
                                   onPressed: () {
-                                    context.read<AIProvider>().createNewConversation();
+                                    context
+                                        .read<AIProvider>()
+                                        .createNewConversation();
                                   },
                                   tooltip: 'New conversation',
                                 ),
@@ -113,7 +146,8 @@ class _CopilotScreenState extends State<CopilotScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const ConversationHistoryScreen(),
+                                        builder: (context) =>
+                                            const ConversationHistoryScreen(),
                                       ),
                                     );
                                   },
@@ -161,7 +195,11 @@ class _CopilotScreenState extends State<CopilotScreen> {
                             if (index == aiProvider.chatHistory.length) {
                               if (aiProvider.state == LoadingState.loading) {
                                 return const Padding(
-                                  padding: EdgeInsets.only(top: 16, left: 20, right: 20),
+                                  padding: EdgeInsets.only(
+                                    top: 16,
+                                    left: 20,
+                                    right: 20,
+                                  ),
                                   child: LoadingIndicator(),
                                 );
                               }
@@ -172,10 +210,14 @@ class _CopilotScreenState extends State<CopilotScreen> {
                             final isUser = message.role == MessageRole.user;
 
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                              padding: const EdgeInsets.only(
+                                bottom: 16,
+                                left: 20,
+                                right: 20,
+                              ),
                               child: Column(
-                                crossAxisAlignment: isUser 
-                                    ? CrossAxisAlignment.end 
+                                crossAxisAlignment: isUser
+                                    ? CrossAxisAlignment.end
                                     : CrossAxisAlignment.start,
                                 children: [
                                   // Message bubble
@@ -183,10 +225,14 @@ class _CopilotScreenState extends State<CopilotScreen> {
                                     _buildUserMessage(message)
                                   else
                                     AIResponseCard(message: message),
-                                  
+
                                   // Timestamp
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 4, left: 8, right: 8),
+                                    padding: const EdgeInsets.only(
+                                      top: 4,
+                                      left: 8,
+                                      right: 8,
+                                    ),
                                     child: Text(
                                       _formatTimestamp(message.timestamp),
                                       style: const TextStyle(
@@ -199,8 +245,11 @@ class _CopilotScreenState extends State<CopilotScreen> {
                               ),
                             );
                           },
-                          childCount: aiProvider.chatHistory.length + 
-                              (aiProvider.state == LoadingState.loading ? 1 : 0),
+                          childCount:
+                              aiProvider.chatHistory.length +
+                              (aiProvider.state == LoadingState.loading
+                                  ? 1
+                                  : 0),
                         ),
                       ),
                     ),
@@ -208,7 +257,7 @@ class _CopilotScreenState extends State<CopilotScreen> {
               );
             },
           ),
-          
+
           // Input field positioned at bottom
           Positioned(
             left: 0,
@@ -220,6 +269,28 @@ class _CopilotScreenState extends State<CopilotScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUsageBadge(SubscriptionProvider subscriptionProvider) {
+    final label = subscriptionProvider.hasUnlimitedAiPrompts
+        ? 'AI Unlimited'
+        : 'AI ${subscriptionProvider.aiPromptsUsed}/${subscriptionProvider.aiPromptsLimit ?? 0}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -294,9 +365,7 @@ class _CopilotScreenState extends State<CopilotScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Clear Chat History',
           style: TextStyle(
@@ -307,10 +376,7 @@ class _CopilotScreenState extends State<CopilotScreen> {
         ),
         content: const Text(
           'Are you sure you want to clear this conversation? This action cannot be undone.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF666666),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
         ),
         actions: [
           TextButton(
@@ -333,6 +399,61 @@ class _CopilotScreenState extends State<CopilotScreen> {
               style: TextStyle(
                 color: Color(0xFFFF3B30),
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAiQuotaReachedDialog(SubscriptionProvider subscriptionProvider) {
+    final planName = subscriptionProvider.currentPlan.displayName;
+    final used = subscriptionProvider.aiPromptsUsed;
+    final limit = subscriptionProvider.aiPromptsLimit ?? 0;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'AI Limit Reached',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: Text(
+          '$planName plan usage: $used/$limit prompts this month. Upgrade to Pro for unlimited AI Copilot.',
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFF666666),
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Later',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/subscription');
+            },
+            child: const Text(
+              'View Plans',
+              style: TextStyle(
+                color: Color(0xFF1A1A1A),
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),

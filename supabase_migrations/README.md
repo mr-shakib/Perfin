@@ -17,6 +17,14 @@ This migration adds support for the main app features including:
 - `transactions` - Added `is_synced` and `linked_goal_id` fields
 - `budgets` - Added `is_active` field
 
+### 003_add_subscriptions_and_usage_counters.sql
+
+This migration adds support for subscription and usage metering:
+
+**New Tables:**
+- `subscriptions` - Current plan and billing period state per user
+- `usage_counters` - Metered usage counters by metric and period (for quotas)
+
 ## How to Apply Migrations
 
 ### Option 1: Using Supabase Dashboard
@@ -45,6 +53,8 @@ psql -h <your-supabase-host> -U postgres -d postgres -f supabase_migrations/001_
 Migrations should be applied in numerical order:
 1. First, ensure the base schema from `supabase_setup.sql` is applied
 2. Then apply `001_add_main_app_features.sql`
+3. Then apply `002_add_delete_my_account_function.sql`
+4. Then apply `003_add_subscriptions_and_usage_counters.sql`
 
 ## Row Level Security (RLS)
 

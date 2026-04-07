@@ -8,11 +8,11 @@ import 'storage_service.dart';
 class AuthService {
   final StorageService _storageService;
   final SupabaseClient _supabase = Supabase.instance.client;
-  
+
   static const String _sessionKey = 'user_session';
-  
+
   AuthService(this._storageService);
-  
+
   /// Authenticate user with email and password using Supabase Auth
   /// Returns authenticated User on success
   /// Throws AuthenticationException on failure
@@ -21,34 +21,34 @@ class AuthService {
     if (email.trim().isEmpty) {
       throw AuthenticationException('Email cannot be empty');
     }
-    
+
     if (password.trim().isEmpty) {
       throw AuthenticationException('Password cannot be empty');
     }
-    
+
     // Basic email format validation
     if (!_isValidEmail(email)) {
       throw AuthenticationException('Invalid email format');
     }
-    
+
     try {
       // Sign in with Supabase
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      
+
       if (response.user == null) {
         throw AuthenticationException('Authentication failed');
       }
-      
+
       // Get user profile from Supabase profiles table
       final profileData = await _supabase
           .from('profiles')
           .select()
           .eq('user_id', response.user!.id)
           .maybeSingle();
-      
+
       // Create User model
       final user = app_models.User(
         id: response.user!.id,
@@ -56,7 +56,7 @@ class AuthService {
         email: email,
         createdAt: DateTime.parse(response.user!.createdAt),
       );
-      
+
       return user;
     } on AuthException catch (e) {
       throw AuthenticationException(_mapAuthError(e.message));
@@ -64,34 +64,38 @@ class AuthService {
       throw AuthenticationException('Authentication failed: ${e.toString()}');
     }
   }
-  
+
   /// Sign up a new user with email, password, and name
   /// Returns authenticated User on success
   /// Throws AuthenticationException on failure
-  Future<app_models.User> signUp(String email, String password, String name) async {
+  Future<app_models.User> signUp(
+    String email,
+    String password,
+    String name,
+  ) async {
     // Validate inputs
     if (email.trim().isEmpty) {
       throw AuthenticationException('Email cannot be empty');
     }
-    
+
     if (password.trim().isEmpty) {
       throw AuthenticationException('Password cannot be empty');
     }
-    
+
     if (name.trim().isEmpty) {
       throw AuthenticationException('Name cannot be empty');
     }
-    
+
     // Basic email format validation
     if (!_isValidEmail(email)) {
       throw AuthenticationException('Invalid email format');
     }
-    
+
     // Password strength validation
     if (password.length < 6) {
       throw AuthenticationException('Password must be at least 6 characters');
     }
-    
+
     try {
       // Sign up with Supabase — name stored in metadata so the DB trigger
       // can create the profile row without needing an active session.
@@ -129,7 +133,7 @@ class AuthService {
       throw AuthenticationException('Sign up failed: ${e.toString()}');
     }
   }
-  
+
   /// Sign out the current user from Supabase
   Future<void> signOut() async {
     try {
@@ -140,27 +144,44 @@ class AuthService {
       throw AuthenticationException('Sign out failed: ${e.toString()}');
     }
   }
-  
+
+  /// Permanently delete the authenticated account and associated data.
+  ///
+  /// This calls a secured Postgres function (`delete_my_account`) that removes
+  /// user-owned rows and the auth identity on the backend.
+  Future<void> deleteAccount() async {
+    try {
+      await _supabase.rpc('delete_my_account');
+      await clearSession();
+    } on AuthException catch (e) {
+      throw AuthenticationException(_mapAuthError(e.message));
+    } catch (e) {
+      throw AuthenticationException('Account deletion failed: ${e.toString()}');
+    }
+  }
+
   /// Get current authenticated user from Supabase
   /// Returns User if authenticated, null otherwise
   Future<app_models.User?> getCurrentUser() async {
     try {
       final supabaseUser = _supabase.auth.currentUser;
-      
+
       if (supabaseUser == null) {
         return null;
       }
-      
+
       // Get user profile from Supabase
       final profileData = await _supabase
           .from('profiles')
           .select()
           .eq('user_id', supabaseUser.id)
           .maybeSingle();
-      
+
       return app_models.User(
         id: supabaseUser.id,
-        name: profileData?['name'] ?? _extractNameFromEmail(supabaseUser.email ?? ''),
+        name:
+            profileData?['name'] ??
+            _extractNameFromEmail(supabaseUser.email ?? ''),
         email: supabaseUser.email ?? '',
         createdAt: DateTime.parse(supabaseUser.createdAt),
       );
@@ -168,7 +189,7 @@ class AuthService {
       return null;
     }
   }
-  
+
   /// Save user session to local storage (for offline access)
   /// Persists the authenticated user's information
   Future<void> saveSession(app_models.User user) async {
@@ -179,7 +200,7 @@ class AuthService {
       throw AuthenticationException('Failed to save session: ${e.toString()}');
     }
   }
-  
+
   /// Load user session from local storage
   /// Returns User if a valid session exists, null otherwise
   /// Note: This checks Supabase auth first, then falls back to local storage
@@ -192,14 +213,14 @@ class AuthService {
         await saveSession(currentUser);
         return currentUser;
       }
-      
+
       // Fall back to local storage if offline
       final sessionData = await _storageService.load<String>(_sessionKey);
-      
+
       if (sessionData == null) {
         return null;
       }
-      
+
       final userJson = jsonDecode(sessionData) as Map<String, dynamic>;
       return app_models.User.fromJson(userJson);
     } catch (e) {
@@ -207,7 +228,7 @@ class AuthService {
       return null;
     }
   }
-  
+
   /// Clear user session from storage
   /// Removes all authentication data
   Future<void> clearSession() async {
@@ -217,7 +238,7 @@ class AuthService {
       throw AuthenticationException('Failed to clear session: ${e.toString()}');
     }
   }
-  
+
   /// Map Supabase auth errors to user-friendly messages
   String _mapAuthError(String error) {
     if (error.contains('Invalid login credentials')) {
@@ -233,26 +254,24 @@ class AuthService {
     }
     return error;
   }
-  
+
   /// Validate email format
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     return emailRegex.hasMatch(email);
   }
-  
+
   /// Extract name from email (before @ symbol)
   /// Used as fallback when profile name is not available
   String _extractNameFromEmail(String email) {
     final parts = email.split('@');
     if (parts.isEmpty) return 'User';
-    
+
     // Capitalize first letter
     final name = parts[0];
-    return name.isNotEmpty 
-        ? name[0].toUpperCase() + name.substring(1)
-        : 'User';
+    return name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : 'User';
   }
 }
 

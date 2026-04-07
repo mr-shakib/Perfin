@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/currency_provider.dart';
+import '../../../providers/subscription_provider.dart';
 import '../budget_management_screen.dart';
 import '../category_management_screen.dart';
 import '../privacy_settings_screen.dart';
@@ -24,8 +25,8 @@ class SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CurrencyProvider>(
-      builder: (context, currencyProvider, _) {
+    return Consumer2<CurrencyProvider, SubscriptionProvider>(
+      builder: (context, currencyProvider, subscriptionProvider, _) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,14 +37,15 @@ class SettingsList extends StatelessWidget {
               subtitle: _getThemeLabel(themeProvider.themeMode),
               onTap: () => _showThemeSelector(context),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildSettingItem(
               context: context,
               icon: Icons.attach_money,
               title: 'Currency',
-              subtitle: '${currencyProvider.currentCurrency.code} (${currencyProvider.currentCurrency.symbol})',
+              subtitle:
+                  '${currencyProvider.currentCurrency.code} (${currencyProvider.currentCurrency.symbol})',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -51,9 +53,19 @@ class SettingsList extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
+            _buildSettingItem(
+              context: context,
+              icon: Icons.workspace_premium_outlined,
+              title: 'Subscription',
+              subtitle: '${subscriptionProvider.currentPlan.displayName} plan',
+              onTap: () => Navigator.pushNamed(context, '/subscription'),
+            ),
+
+            const SizedBox(height: 12),
+
             _buildSettingItem(
               context: context,
               icon: Icons.account_balance_wallet_outlined,
@@ -66,9 +78,9 @@ class SettingsList extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildSettingItem(
               context: context,
               icon: Icons.category_outlined,
@@ -81,9 +93,9 @@ class SettingsList extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildSettingItem(
               context: context,
               icon: Icons.privacy_tip_outlined,
@@ -96,9 +108,9 @@ class SettingsList extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildSettingItem(
               context: context,
               icon: Icons.download_outlined,
@@ -106,14 +118,13 @@ class SettingsList extends StatelessWidget {
               subtitle: 'Download your data',
               onTap: () => showDialog(
                 context: context,
-                builder: (context) => DataExportDialog(
-                  userId: authProvider.user?.id ?? '',
-                ),
+                builder: (context) =>
+                    DataExportDialog(userId: authProvider.user?.id ?? ''),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildSettingItem(
               context: context,
               icon: Icons.delete_forever_outlined,
@@ -121,10 +132,8 @@ class SettingsList extends StatelessWidget {
               subtitle: 'Permanently delete',
               onTap: () => showDialog(
                 context: context,
-                builder: (context) => AccountDeletionDialog(
-                  userId: authProvider.user?.id ?? '',
-                  authProvider: authProvider,
-                ),
+                builder: (context) =>
+                    AccountDeletionDialog(authProvider: authProvider),
               ),
               isDestructive: true,
             ),
@@ -149,10 +158,7 @@ class SettingsList extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.creamLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFF0F0F0),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFF0F0F0), width: 1),
         ),
         child: Row(
           children: [
@@ -200,11 +206,7 @@ class SettingsList extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFFCCCCCC),
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC), size: 20),
           ],
         ),
       ),
@@ -279,7 +281,7 @@ class SettingsList extends StatelessWidget {
     required ThemeMode mode,
   }) {
     final isSelected = themeProvider.themeMode == mode;
-    
+
     return GestureDetector(
       onTap: () {
         themeProvider.setTheme(mode);
@@ -309,11 +311,7 @@ class SettingsList extends StatelessWidget {
             ),
             const Spacer(),
             if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: Colors.white,
-                size: 20,
-              ),
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
           ],
         ),
       ),

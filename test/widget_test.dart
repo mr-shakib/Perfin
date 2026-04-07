@@ -21,13 +21,14 @@ import 'package:perfin/services/ai_service.dart';
 import 'package:perfin/services/notification_service.dart';
 import 'package:perfin/services/notification_helper.dart';
 import 'package:perfin/services/sync_service.dart';
+import 'package:perfin/services/subscription_service.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Initialize services for testing
     final storageService = HiveStorageService();
     await storageService.init();
-    
+
     final authService = AuthService(storageService);
     final themeService = ThemeService(storageService);
     final transactionService = TransactionService(storageService);
@@ -36,8 +37,12 @@ void main() {
     final goalService = GoalService(storageService, transactionService);
     final insightService = InsightService(transactionService);
     final notificationHelper = NotificationHelper();
-    final notificationService = NotificationService(storageService, notificationHelper);
+    final notificationService = NotificationService(
+      storageService,
+      notificationHelper,
+    );
     final syncService = SyncService(storageService);
+    final subscriptionService = SubscriptionService(storageService);
     final aiService = AIService(
       transactionService: transactionService,
       budgetService: budgetService,
@@ -45,21 +50,24 @@ void main() {
       insightService: insightService,
       apiKey: 'test-key',
     );
-    
+
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp(
-      authService: authService,
-      themeService: themeService,
-      transactionService: transactionService,
-      budgetService: budgetService,
-      onboardingService: onboardingService,
-      aiService: aiService,
-      insightService: insightService,
-      goalService: goalService,
-      notificationService: notificationService,
-      storageService: storageService,
-      syncService: syncService,
-    ));
+    await tester.pumpWidget(
+      MyApp(
+        authService: authService,
+        themeService: themeService,
+        transactionService: transactionService,
+        budgetService: budgetService,
+        onboardingService: onboardingService,
+        aiService: aiService,
+        insightService: insightService,
+        goalService: goalService,
+        notificationService: notificationService,
+        subscriptionService: subscriptionService,
+        storageService: storageService,
+        syncService: syncService,
+      ),
+    );
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

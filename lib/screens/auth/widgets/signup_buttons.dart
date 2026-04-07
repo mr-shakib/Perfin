@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../legal_document_screen.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_colors.dart';
 
@@ -111,18 +112,27 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
               widget.onChanged(_agreed);
             },
             activeColor: AppColors.accent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Wrap(
             children: [
-              Text('I agree to the ',
-                  style: TextStyle(fontSize: 13, color: AppColors.neutral600)),
+              Text(
+                'I agree to the ',
+                style: TextStyle(fontSize: 13, color: AppColors.neutral600),
+              ),
               GestureDetector(
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Terms & Conditions coming soon!')),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LegalDocumentScreen(
+                      title: 'Terms & Conditions',
+                      assetPath: 'assets/legal/terms_and_conditions.md',
+                    ),
+                  ),
                 ),
                 child: Text(
                   'Terms & Conditions',
@@ -134,11 +144,18 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
                   ),
                 ),
               ),
-              Text(' and ',
-                  style: TextStyle(fontSize: 13, color: AppColors.neutral600)),
+              Text(
+                ' and ',
+                style: TextStyle(fontSize: 13, color: AppColors.neutral600),
+              ),
               GestureDetector(
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Privacy Policy coming soon!')),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LegalDocumentScreen(
+                      title: 'Privacy Policy',
+                      assetPath: 'assets/legal/privacy_policy.md',
+                    ),
+                  ),
                 ),
                 child: Text(
                   'Privacy Policy',

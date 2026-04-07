@@ -18,6 +18,7 @@ import 'services/ai_service.dart';
 import 'services/notification_service.dart';
 import 'services/notification_helper.dart';
 import 'services/sync_service.dart';
+import 'services/subscription_service.dart';
 import 'models/sync_result.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
@@ -28,6 +29,7 @@ import 'providers/ai_provider.dart';
 import 'providers/insight_provider.dart';
 import 'providers/goal_provider.dart';
 import 'providers/currency_provider.dart';
+import 'providers/subscription_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -39,6 +41,7 @@ import 'screens/onboarding/onboarding_weekly_review_screen.dart';
 import 'screens/main_dashboard.dart';
 import 'screens/transactions/add_transaction_screen.dart';
 import 'screens/budget/manage_budget_screen.dart';
+import 'screens/subscription/subscription_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,6 +95,7 @@ void main() async {
     storageService,
     notificationHelper,
   );
+  final subscriptionService = SubscriptionService(storageService);
 
   // GROQ_API_KEY is loaded from .env in development.
   // In production, AI features gracefully degrade when no key is present.
@@ -130,6 +134,7 @@ void main() async {
       aiService: aiService,
       insightService: insightService,
       notificationService: notificationService,
+      subscriptionService: subscriptionService,
       storageService: storageService,
       syncService: syncService,
     ),
@@ -146,6 +151,7 @@ class MyApp extends StatelessWidget {
   final AIService aiService;
   final InsightService insightService;
   final NotificationService notificationService;
+  final SubscriptionService subscriptionService;
   final HiveStorageService storageService;
   final SyncService syncService;
 
@@ -160,6 +166,7 @@ class MyApp extends StatelessWidget {
     required this.aiService,
     required this.insightService,
     required this.notificationService,
+    required this.subscriptionService,
     required this.storageService,
     required this.syncService,
   });
@@ -174,6 +181,15 @@ class MyApp extends StatelessWidget {
           create: (_) => OnboardingProvider(onboardingService),
         ),
         ChangeNotifierProvider(create: (_) => AuthProvider(authService)),
+        ChangeNotifierProxyProvider<AuthProvider, SubscriptionProvider>(
+          create: (_) => SubscriptionProvider(subscriptionService),
+          update: (_, auth, previous) {
+            final provider =
+                previous ?? SubscriptionProvider(subscriptionService);
+            provider.updateUserId(auth.user?.id);
+            return provider;
+          },
+        ),
         ChangeNotifierProxyProvider<AuthProvider, TransactionProvider>(
           create: (_) => TransactionProvider(
             transactionService,
@@ -280,6 +296,7 @@ class _AppRootState extends State<AppRoot> {
             '/dashboard': (context) => const MainDashboard(),
             '/transactions/add': (context) => const AddTransactionScreen(),
             '/budget/manage': (context) => const ManageBudgetScreen(),
+            '/subscription': (context) => const SubscriptionScreen(),
           },
         );
       },

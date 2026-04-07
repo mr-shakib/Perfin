@@ -3,6 +3,8 @@ export 'budget.dart';
 export 'transaction.dart';
 export 'user.dart';
 export 'goal.dart';
+export 'subscription_plan.dart';
+export 'entitlement.dart';
 
 // AI-related models
 export 'ai_summary.dart';

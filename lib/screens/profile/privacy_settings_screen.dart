@@ -67,10 +67,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Privacy Settings'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Privacy Settings'), elevation: 0),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -79,10 +76,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 // AI Features Section
                 const Text(
                   'AI Features',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Card(
@@ -116,16 +110,13 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Notification Preferences Section
                 const Text(
                   'Notification Preferences',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Card(
@@ -189,9 +180,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Privacy Information
                 Card(
                   color: Colors.blue.withOpacity(0.1),
@@ -202,10 +193,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: Colors.blue[700],
-                            ),
+                            Icon(Icons.info_outline, color: Colors.blue[700]),
                             const SizedBox(width: 8),
                             Text(
                               'Your Privacy',
@@ -218,9 +206,10 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Your financial data is stored securely and never shared '
-                          'with third parties. AI features process your data locally '
-                          'and only use your own information for insights.',
+                          'Your financial data is stored securely. When AI features '
+                          'are enabled, selected prompts and finance context may be '
+                          'sent to a trusted AI provider to generate responses. '
+                          'You can disable AI features at any time from this screen.',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[700],

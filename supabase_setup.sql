@@ -166,3 +166,48 @@ DROP TRIGGER IF EXISTS update_goals_updated_at ON goals;
 CREATE TRIGGER update_goals_updated_at 
   BEFORE UPDATE ON goals 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Secure RPC: Delete current authenticated account and associated data
+CREATE OR REPLACE FUNCTION public.delete_my_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  current_uid UUID := auth.uid();
+BEGIN
+  IF current_uid IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
+  IF to_regclass('public.chat_messages') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.chat_messages WHERE user_id = $1'
+      USING current_uid;
+  END IF;
+
+  IF to_regclass('public.notification_preferences') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.notification_preferences WHERE user_id = $1'
+      USING current_uid;
+  END IF;
+
+  IF to_regclass('public.usage_counters') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.usage_counters WHERE user_id = $1'
+      USING current_uid;
+  END IF;
+
+  IF to_regclass('public.subscriptions') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.subscriptions WHERE user_id = $1'
+      USING current_uid;
+  END IF;
+
+  DELETE FROM transactions WHERE user_id = current_uid;
+  DELETE FROM budgets WHERE user_id = current_uid;
+  DELETE FROM goals WHERE user_id = current_uid;
+  DELETE FROM profiles WHERE user_id = current_uid;
+  DELETE FROM auth.users WHERE id = current_uid;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_my_account() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.delete_my_account() TO authenticated;
