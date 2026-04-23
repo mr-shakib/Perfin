@@ -19,29 +19,22 @@ class RecentTransactionsList extends StatelessWidget {
 
         if (allTransactions.isEmpty) {
           return Container(
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: AppColors.creamLight,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFFE5E5E5),
-                width: 1,
-              ),
-            ),
+            padding: const EdgeInsets.all(34),
+            decoration: _cardDecoration(),
             child: const Column(
               children: [
                 Icon(
                   Icons.receipt_long_outlined,
-                  size: 48,
-                  color: Color(0xFFCCCCCC),
+                  size: 40,
+                  color: Color(0xFFB0B7C4),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 12),
                 Text(
                   'No transactions yet',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF666666),
+                    color: Color(0xFF667284),
                   ),
                 ),
               ],
@@ -52,42 +45,57 @@ class RecentTransactionsList extends StatelessWidget {
         final recentTransactions = allTransactions.take(3).toList();
 
         return Container(
-          decoration: BoxDecoration(
-            color: AppColors.creamLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFE5E5E5),
-              width: 1,
-            ),
-          ),
-          padding: const EdgeInsets.all(20),
+          decoration: _cardDecoration(),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Recent Transactions',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A1A),
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Recent Transactions',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF172132),
+                      letterSpacing: -0.25,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.creamCard,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      DateFormat('MMM').format(DateTime.now()),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF647083),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               ...recentTransactions.asMap().entries.map((entry) {
                 final index = entry.key;
                 final transaction = entry.value;
                 final isLast = index == recentTransactions.length - 1;
 
-                return Column(
-                  children: [
-                    _buildTransactionItem(context, transaction, currencyProvider),
-                    if (!isLast)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Divider(height: 1, color: Color(0xFFE0E0E0)),
-                      ),
-                  ],
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                  child: _buildTransactionItem(
+                    context,
+                    transaction,
+                    currencyProvider,
+                  ),
                 );
               }),
             ],
@@ -97,81 +105,115 @@ class RecentTransactionsList extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, Transaction transaction, CurrencyProvider currencyProvider) {
+  Widget _buildTransactionItem(
+    BuildContext context,
+    Transaction transaction,
+    CurrencyProvider currencyProvider,
+  ) {
     final isIncome = transaction.type == TransactionType.income;
-    final dateFormat = DateFormat('MMM dd');
+    final dateFormat = DateFormat('MMM d');
 
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Transaction detail for ${transaction.id}'),
-            duration: const Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Transaction detail for ${transaction.id}'),
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFCFBF8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFEAE5DA), width: 1),
           ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isIncome
-                    ? const Color(0xFFE8F5E9)
-                    : const Color(0xFFFFEBEE),
-                borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isIncome
+                      ? const Color(0xFFEAF9F0)
+                      : const Color(0xFFFFF0EE),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(
+                  isIncome
+                      ? Icons.south_west_rounded
+                      : Icons.north_east_rounded,
+                  color: isIncome
+                      ? const Color(0xFF2EA86F)
+                      : const Color(0xFFD25A50),
+                  size: 18,
+                ),
               ),
-              child: Icon(
-                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                color: isIncome
-                    ? const Color(0xFF00C853)
-                    : const Color(0xFFFF3B30),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    transaction.category,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.category,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1C2738),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    dateFormat.format(transaction.date),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF999999),
+                    const SizedBox(height: 3),
+                    Text(
+                      transaction.notes?.trim().isNotEmpty == true
+                          ? '${dateFormat.format(transaction.date)} • ${transaction.notes!.trim()}'
+                          : dateFormat.format(transaction.date),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF7E8797),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-            Text(
-              '${isIncome ? '+' : '-'}${currencyProvider.formatWhole(transaction.amount)}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: isIncome
-                    ? const Color(0xFF00C853)
-                    : const Color(0xFFFF3B30),
+              Text(
+                '${isIncome ? '+' : '-'}${currencyProvider.formatWhole(transaction.amount)}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: isIncome
+                      ? const Color(0xFF2EA86F)
+                      : const Color(0xFFD25A50),
+                  letterSpacing: -0.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: const Color(0xFFE6E3DB), width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFF1B2430).withValues(alpha: 0.08),
+          blurRadius: 18,
+          offset: const Offset(0, 8),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../providers/budget_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/ai_provider.dart';
@@ -23,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -57,8 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: const Color(0xFFF7F4EC),
       body: Consumer3<TransactionProvider, BudgetProvider, AIProvider>(
         builder: (context, transactionProvider, budgetProvider, aiProvider, _) {
           if (transactionProvider.state == LoadingState.loading &&
@@ -71,85 +74,125 @@ class _HomeScreenState extends State<HomeScreen> {
             return _buildErrorState(transactionProvider.errorMessage);
           }
 
-          return RefreshIndicator(
-            onRefresh: _onRefresh,
-            color: AppColors.primary,
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFFDFBF5), Color(0xFFF4F0E6)],
               ),
-              slivers: [
-                // Header that scrolls away
-                SliverToBoxAdapter(
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Overview',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                              letterSpacing: -1,
+            ),
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: AppColors.primary,
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      DateFormat('EEEE, MMM d').format(now),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF7B808A),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _getGreetingByHour(now.hour),
+                                      style: const TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1A2333),
+                                        letterSpacing: -0.9,
+                                        height: 1.05,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: const Color(0xFFE9E5DA),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.notifications_none_rounded,
+                                    ),
+                                    color: const Color(0xFF1A2333),
+                                    iconSize: 22,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_none),
-                            iconSize: 28,
-                            color: const Color(0xFF1A1A1A),
-                            onPressed: () {},
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Everything in one clean financial view.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF737985),
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                // Content
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: FinancialSummaryCard(),
-                      ),
-                      
-                      const SizedBox(height: 32),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: QuickActionButtons(),
-                      ),
-                      
-                      const SizedBox(height: 32),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: AISummaryCard(),
-                      ),
-                      
-                      const SizedBox(height: 32),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: RecentTransactionsList(),
-                      ),
-                      
-                      const SizedBox(height: 32),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: BudgetStatusList(),
-                      ),
-                    ]),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        const FinancialSummaryCard(),
+                        const SizedBox(height: 24),
+                        const QuickActionButtons(),
+                        const SizedBox(height: 30),
+                        _buildSectionHeader(
+                          title: 'AI Briefing',
+                          subtitle: 'Patterns and anomalies this month',
+                        ),
+                        const SizedBox(height: 12),
+                        const AISummaryCard(),
+                        const SizedBox(height: 30),
+                        _buildSectionHeader(
+                          title: 'Recent Activity',
+                          subtitle: 'Your latest income and expenses',
+                        ),
+                        const SizedBox(height: 12),
+                        const RecentTransactionsList(),
+                        const SizedBox(height: 30),
+                        _buildSectionHeader(
+                          title: 'Budget Health',
+                          subtitle: 'Track category spending progress',
+                        ),
+                        const SizedBox(height: 12),
+                        const BudgetStatusList(),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -157,11 +200,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _getGreetingByHour(int hour) {
+    if (hour < 12) {
+      return 'Good morning';
+    }
+    if (hour < 17) {
+      return 'Good afternoon';
+    }
+    return 'Good evening';
+  }
+
+  Widget _buildSectionHeader({
+    required String title,
+    required String subtitle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A2333),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF7B808A),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLoadingState() {
     return const Center(
-      child: CircularProgressIndicator(
-        color: Color(0xFF1A1A1A),
-      ),
+      child: CircularProgressIndicator(color: Color(0xFF303E50)),
     );
   }
 
@@ -172,18 +252,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '😕',
-              style: TextStyle(fontSize: 64),
-            ),
+            const Text('😕', style: TextStyle(fontSize: 64)),
             const SizedBox(height: 16),
             Text(
               errorMessage ?? 'Something went wrong',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF666666),
-              ),
+              style: const TextStyle(fontSize: 16, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 24),
             ElevatedButton(

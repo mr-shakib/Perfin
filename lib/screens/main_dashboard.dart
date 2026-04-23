@@ -22,6 +22,7 @@ class MainDashboard extends StatefulWidget {
 
 class MainDashboardState extends State<MainDashboard> {
   int _currentIndex = 0;
+  late final PageController _pageController;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -31,73 +32,130 @@ class MainDashboardState extends State<MainDashboard> {
     ProfileScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   /// Public method to switch tabs programmatically
   void switchToTab(int index) {
     if (index >= 0 && index < _screens.length) {
-      setState(() {
-        _currentIndex = index;
-      });
+      _goToTab(index);
+    }
+  }
+
+  void _goToTab(int index) {
+    if (index == _currentIndex) return;
+
+    setState(() {
+      _currentIndex = index;
+    });
+
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Allow body to extend behind bottom nav
-      body: IndexedStack(
-        index: _currentIndex,
+      extendBody: true,
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          if (_currentIndex != index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          }
+        },
         children: _screens,
       ),
-      bottomNavigationBar: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFDF0).withValues(alpha: 0.4),
-              border: Border(
-                top: BorderSide(
-                  color: const Color(0xFFE5E5E5).withValues(alpha: 0.2),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(
-                      index: 0,
-                      icon: Icons.home_outlined,
-                      activeIcon: Icons.home,
-                      label: 'Home',
-                    ),
-                    _buildNavItem(
-                      index: 1,
-                      icon: Icons.view_carousel_outlined,
-                      activeIcon: Icons.view_carousel,
-                      label: 'Feed',
-                    ),
-                    _buildNavItem(
-                      index: 2,
-                      icon: Icons.chat_bubble_outline,
-                      activeIcon: Icons.chat_bubble,
-                      label: 'Perfin',
-                    ),
-                    _buildNavItem(
-                      index: 3,
-                      icon: Icons.flag_outlined,
-                      activeIcon: Icons.flag,
-                      label: 'Goals',
-                    ),
-                    _buildNavItem(
-                      index: 4,
-                      icon: Icons.person_outline,
-                      activeIcon: Icons.person,
-                      label: 'Profile',
-                    ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFFFFEFA).withValues(alpha: 0.82),
+                    const Color(0xFFFFF9EC).withValues(alpha: 0.7),
                   ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFFFFFFF).withValues(alpha: 0.72),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1D2430).withValues(alpha: 0.11),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF1D2430).withValues(alpha: 0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                child: SizedBox(
+                  height: 44,
+                  child: Row(
+                    children: [
+                      _buildNavItem(
+                        index: 0,
+                        icon: Icons.home_outlined,
+                        activeIcon: Icons.home_rounded,
+                        label: 'Home',
+                      ),
+                      _buildNavItem(
+                        index: 1,
+                        icon: Icons.view_carousel_outlined,
+                        activeIcon: Icons.view_carousel_rounded,
+                        label: 'Feed',
+                      ),
+                      _buildNavItem(
+                        index: 2,
+                        icon: Icons.chat_bubble_outline,
+                        activeIcon: Icons.chat_bubble,
+                        label: 'Perfin',
+                      ),
+                      _buildNavItem(
+                        index: 3,
+                        icon: Icons.flag_outlined,
+                        activeIcon: Icons.flag_rounded,
+                        label: 'Goals',
+                      ),
+                      _buildNavItem(
+                        index: 4,
+                        icon: Icons.person_outline,
+                        activeIcon: Icons.person_rounded,
+                        label: 'Profile',
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -114,51 +172,54 @@ class MainDashboardState extends State<MainDashboard> {
     required String label,
   }) {
     final isActive = _currentIndex == index;
-    
+
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
+          _goToTab(index);
         },
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon with background for active state
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isActive 
-                      ? const Color(0xFF1A1A1A) 
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+          decoration: BoxDecoration(
+            color: isActive
+                ? const Color(0xFF2D4566).withValues(alpha: 0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Semantics(
+            label: label,
+            selected: isActive,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              width: isActive ? 38 : 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: isActive
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF263A56), Color(0xFF35527A)],
+                      )
+                    : null,
+                color: isActive ? null : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isActive
+                      ? Colors.white.withValues(alpha: 0.24)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isActive ? activeIcon : icon,
-                  color: isActive 
-                      ? Colors.white 
-                      : const Color(0xFF999999),
-                  size: 24,
+                  width: 1,
                 ),
               ),
-              const SizedBox(height: 4),
-              // Label
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive 
-                      ? const Color(0xFF1A1A1A) 
-                      : const Color(0xFF999999),
-                  letterSpacing: 0.2,
-                ),
+              child: Icon(
+                isActive ? activeIcon : icon,
+                color: isActive ? Colors.white : const Color(0xFF858A93),
+                size: 18,
               ),
-            ],
+            ),
           ),
         ),
       ),
