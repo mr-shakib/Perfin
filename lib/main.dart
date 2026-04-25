@@ -15,6 +15,8 @@ import 'services/onboarding_service.dart';
 import 'services/goal_service.dart';
 import 'services/insight_service.dart';
 import 'services/ai_service.dart';
+import 'services/on_device_ai_service.dart';
+import 'services/on_device_model_download_service.dart';
 import 'services/notification_service.dart';
 import 'services/notification_helper.dart';
 import 'services/sync_service.dart';
@@ -26,6 +28,7 @@ import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/onboarding_provider.dart';
 import 'providers/ai_provider.dart';
+import 'providers/on_device_ai_provider.dart';
 import 'providers/insight_provider.dart';
 import 'providers/goal_provider.dart';
 import 'providers/currency_provider.dart';
@@ -96,6 +99,8 @@ void main() async {
     notificationHelper,
   );
   final subscriptionService = SubscriptionService(storageService);
+  final onDeviceAIService = OnDeviceAIService();
+  final onDeviceDownloadService = OnDeviceModelDownloadService(storageService);
 
   // GROQ_API_KEY is loaded from .env in development.
   // In production, AI features gracefully degrade when no key is present.
@@ -137,6 +142,8 @@ void main() async {
       subscriptionService: subscriptionService,
       storageService: storageService,
       syncService: syncService,
+      onDeviceAIService: onDeviceAIService,
+      onDeviceDownloadService: onDeviceDownloadService,
     ),
   );
 }
@@ -154,6 +161,8 @@ class MyApp extends StatelessWidget {
   final SubscriptionService subscriptionService;
   final HiveStorageService storageService;
   final SyncService syncService;
+  final OnDeviceAIService onDeviceAIService;
+  final OnDeviceModelDownloadService onDeviceDownloadService;
 
   const MyApp({
     super.key,
@@ -169,6 +178,8 @@ class MyApp extends StatelessWidget {
     required this.subscriptionService,
     required this.storageService,
     required this.syncService,
+    required this.onDeviceAIService,
+    required this.onDeviceDownloadService,
   });
 
   @override
@@ -177,6 +188,13 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider(themeService)),
         ChangeNotifierProvider(create: (_) => CurrencyProvider(storageService)),
+        ChangeNotifierProvider(
+          create: (_) => OnDeviceAIProvider(
+            onDeviceDownloadService,
+            onDeviceAIService,
+            storageService,
+          ),
+        ),
         ChangeNotifierProvider(
           create: (_) => OnboardingProvider(onboardingService),
         ),

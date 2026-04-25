@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/ai_provider.dart';
+import '../../providers/on_device_ai_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../models/chat_message.dart';
 import '../../theme/app_colors.dart';
+import '../../screens/settings/on_device_ai_settings_screen.dart';
 import 'widgets/ai_response_card.dart';
 import 'widgets/chat_input_field.dart';
 import 'widgets/suggested_questions_list.dart';
@@ -92,8 +94,8 @@ class _CopilotScreenState extends State<CopilotScreen> {
       body: Stack(
         children: [
           // Main content
-          Consumer2<AIProvider, SubscriptionProvider>(
-            builder: (context, aiProvider, subscriptionProvider, _) {
+          Consumer3<AIProvider, SubscriptionProvider, OnDeviceAIProvider>(
+            builder: (context, aiProvider, subscriptionProvider, onDevice, _) {
               final hasMessages = aiProvider.chatHistory.isNotEmpty;
 
               return CustomScrollView(
@@ -111,19 +113,54 @@ class _CopilotScreenState extends State<CopilotScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Perfin',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1A1A1A),
-                                letterSpacing: -1,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Perfin',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1A1A1A),
+                                    letterSpacing: -1,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const OnDeviceAISettingsScreen(),
+                                    ),
+                                  ),
+                                  child: _BackendChip(
+                                    label: aiProvider.activeBackendName,
+                                    isOnDevice: aiProvider.isUsingOnDevice,
+                                  ),
+                                ),
+                              ],
                             ),
                             Row(
                               children: [
                                 _buildUsageBadge(subscriptionProvider),
                                 const SizedBox(width: 8),
+                                // On-device AI settings button
+                                IconButton(
+                                  icon: const Icon(Icons.phone_android_outlined),
+                                  iconSize: 22,
+                                  color: aiProvider.isUsingOnDevice
+                                      ? AppColors.secondary
+                                      : const Color(0xFF666666),
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const OnDeviceAISettingsScreen(),
+                                    ),
+                                  ),
+                                  tooltip: 'On-Device AI settings',
+                                ),
+                                const SizedBox(width: 4),
                                 // New conversation button
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline),
@@ -455,6 +492,46 @@ class _CopilotScreenState extends State<CopilotScreen> {
                 color: Color(0xFF1A1A1A),
                 fontWeight: FontWeight.w700,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small tappable chip in the Copilot header showing the active AI backend.
+class _BackendChip extends StatelessWidget {
+  final String label;
+  final bool isOnDevice;
+
+  const _BackendChip({required this.label, required this.isOnDevice});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isOnDevice
+            ? AppColors.secondary.withValues(alpha: 0.15)
+            : AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isOnDevice ? Icons.phone_android_outlined : Icons.cloud_outlined,
+            size: 11,
+            color: isOnDevice ? AppColors.secondary : AppColors.primaryLight,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isOnDevice ? AppColors.secondary : AppColors.primaryLight,
             ),
           ),
         ],

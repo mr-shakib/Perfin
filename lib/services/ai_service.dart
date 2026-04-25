@@ -1,7 +1,5 @@
 import 'dart:math';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../models/ai_summary.dart';
 import '../models/spending_prediction.dart';
 import '../models/spending_pattern.dart';
@@ -18,17 +16,16 @@ import 'transaction_service.dart';
 import 'budget_service.dart';
 import 'goal_service.dart';
 import 'insight_service.dart';
+import 'ai_backend.dart';
 
-/// Service responsible for AI-powered insights and predictions
-/// Uses Groq API for natural language generation
+/// Service responsible for AI-powered insights and predictions.
+/// Delegates text generation to the active [AIBackend] (cloud or on-device).
 class AIService {
   final TransactionService _transactionService;
   final BudgetService _budgetService;
   final GoalService _goalService;
   final InsightService _insightService;
-  final String _apiKey;
-  final String _baseUrl = 'https://api.groq.com/openai/v1';
-  final String _model = 'llama-3.3-70b-versatile'; // Free, fast, and powerful
+  AIBackend _backend;
 
   // Essential categories that should not be suggested for reduction
   static const List<String> _essentialCategories = [
@@ -51,48 +48,22 @@ class AIService {
         _budgetService = budgetService,
         _goalService = goalService,
         _insightService = insightService,
-        _apiKey = apiKey {
+        _backend = GroqBackend(apiKey) {
     if (apiKey.isEmpty) {
-      debugPrint('ERROR: AIService initialized with empty API key!');
+      debugPrint('WARNING: AIService started with empty Groq API key.');
     }
   }
 
-  /// Call Groq API with a prompt
-  Future<String> _callGroqAPI(String prompt) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': _model,
-          'messages': [
-            {'role': 'user', 'content': prompt}
-          ],
-          'temperature': 0.7,
-          'max_tokens': 1024,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final content = data['choices']?[0]?['message']?['content'];
-        if (content == null) {
-          debugPrint('Groq API returned null content: ${response.body}');
-          return 'I apologize, but I received an empty response. Please try again.';
-        }
-        return content as String;
-      } else {
-        debugPrint('Groq API error: ${response.statusCode} - ${response.body}');
-        return 'I encountered an error (${response.statusCode}). Please try again.';
-      }
-    } catch (e) {
-      debugPrint('Groq API call error: $e');
-      return 'I\'m having trouble connecting. Please check your internet connection and try again.';
-    }
+  /// Switches the active inference backend at runtime.
+  void switchBackend(AIBackend backend) {
+    _backend = backend;
+    debugPrint('AIService: switched to ${backend.name}');
   }
+
+  AIBackend get activeBackend => _backend;
+
+  /// Delegates a text prompt to the active backend.
+  Future<String> _callBackend(String prompt) => _backend.complete(prompt);
 
   /// Exclude outliers from a list of values
   /// Outliers are defined as values beyond 2 standard deviations from mean
@@ -297,7 +268,7 @@ Keep it super brief - like a quick text update!
 
       String summaryText;
       try {
-        summaryText = await _callGroqAPI(summaryPrompt);
+        summaryText = await _callBackend(summaryPrompt);
       } catch (e) {
         // Fallback to factual summary if AI fails
         summaryText =
@@ -418,7 +389,7 @@ Quick, friendly explanation (1 sentence) - be casual and mention confidence!
 
       String explanation;
       try {
-        explanation = await _callGroqAPI(explanationPrompt);
+        explanation = await _callBackend(explanationPrompt);
       } catch (e) {
         explanation =
             'Based on your spending pattern, you\'ll likely spend around \$${predictedAmount.toStringAsFixed(2)} 📊';
@@ -846,7 +817,7 @@ Now answer their question in a friendly, helpful way:
       // Generate response
       String responseText;
       try {
-        responseText = await _callGroqAPI(prompt);
+        responseText = await _callBackend(prompt);
       } catch (e) {
         // If AI generation fails, provide a helpful fallback response
         debugPrint('Groq API error: $e');
@@ -1040,7 +1011,7 @@ Be supportive and actionable! Use emojis 🎯
 
       String explanation;
       try {
-        explanation = await _callGroqAPI(explanationPrompt);
+        explanation = await _callBackend(explanationPrompt);
       } catch (e) {
         explanation =
             'You need to save \$${requiredMonthlySavings.toStringAsFixed(2)}/month. Your current surplus is \$${averageMonthlySurplus.toStringAsFixed(2)} 🎯';
