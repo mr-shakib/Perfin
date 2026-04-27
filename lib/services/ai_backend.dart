@@ -10,6 +10,9 @@ abstract class AIBackend {
   /// Whether this backend is ready to accept requests.
   bool get isAvailable;
 
+  /// True only for on-device backends.
+  bool get isOnDevice => false;
+
   /// Send [prompt] and return the model's text response.
   Future<String> complete(String prompt);
 }
@@ -27,6 +30,9 @@ class GroqBackend implements AIBackend {
 
   @override
   bool get isAvailable => _apiKey.isNotEmpty;
+
+  @override
+  bool get isOnDevice => false;
 
   @override
   Future<String> complete(String prompt) async {

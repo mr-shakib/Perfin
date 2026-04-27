@@ -189,11 +189,18 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider(themeService)),
         ChangeNotifierProvider(create: (_) => CurrencyProvider(storageService)),
         ChangeNotifierProvider(
-          create: (_) => OnDeviceAIProvider(
-            onDeviceDownloadService,
-            onDeviceAIService,
-            storageService,
-          ),
+          create: (_) {
+            final provider = OnDeviceAIProvider(
+              onDeviceDownloadService,
+              onDeviceAIService,
+              storageService,
+            );
+            provider.setBackendCallbacks(
+              onActivated: (service) => aiService.switchBackend(service),
+              onDeactivated: () => aiService.resetToCloudBackend(),
+            );
+            return provider;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => OnboardingProvider(onboardingService),

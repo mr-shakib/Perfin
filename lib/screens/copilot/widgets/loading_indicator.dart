@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 
-/// Typing indicator animation
-/// Requirements: 6.3
 class LoadingIndicator extends StatefulWidget {
   const LoadingIndicator({super.key});
 
@@ -31,61 +29,80 @@ class _LoadingIndicatorState extends State<LoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 80),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.creamLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE5E5E5),
-            width: 1,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // AI avatar
+        Container(
+          width: 32,
+          height: 32,
+          decoration: const BoxDecoration(
+            color: AppColors.secondary,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(18),
+              bottomRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Dot(index: 0, controller: _controller),
+              const SizedBox(width: 5),
+              _Dot(index: 1, controller: _controller),
+              const SizedBox(width: 5),
+              _Dot(index: 2, controller: _controller),
+            ],
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildDot(0),
-            const SizedBox(width: 6),
-            _buildDot(1),
-            const SizedBox(width: 6),
-            _buildDot(2),
-          ],
-        ),
-      ),
+      ],
     );
   }
+}
 
-  Widget _buildDot(int index) {
+class _Dot extends StatelessWidget {
+  final int index;
+  final AnimationController controller;
+  const _Dot({required this.index, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final delay = index * 0.2;
-        final value = (_controller.value - delay) % 1.0;
-        
-        // Create a bounce effect
-        final scale = value < 0.5
-            ? 1.0 + (value * 0.6)
-            : 1.3 - ((value - 0.5) * 0.6);
-        
-        final opacity = value < 0.5
-            ? 0.3 + (value * 1.4)
-            : 1.0 - ((value - 0.5) * 1.4);
-
-        return Transform.scale(
-          scale: scale,
-          child: Opacity(
-            opacity: opacity.clamp(0.3, 1.0),
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Color(0xFF666666),
-                shape: BoxShape.circle,
+      animation: controller,
+      builder: (_, _) {
+        final delay = index * 0.25;
+        final v = ((controller.value - delay) % 1.0);
+        final t = v < 0.4 ? v / 0.4 : v < 0.7 ? 1.0 : (1.0 - (v - 0.7) / 0.3);
+        final offset = -6.0 * t.clamp(0.0, 1.0);
+        return Transform.translate(
+          offset: Offset(0, offset),
+          child: Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: Color.lerp(
+                AppColors.primaryLight,
+                AppColors.secondary,
+                t.clamp(0.0, 1.0),
               ),
+              shape: BoxShape.circle,
             ),
           ),
         );

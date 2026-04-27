@@ -19,6 +19,9 @@ class OnDeviceAIService implements AIBackend {
   @override
   bool get isAvailable => _modelLoaded;
 
+  @override
+  bool get isOnDevice => true;
+
   String? get loadedModelId => _loadedModelId;
 
   /// Loads the GGUF model at [modelPath] into the LEAP inference engine.

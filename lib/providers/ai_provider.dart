@@ -32,9 +32,6 @@ class AIProvider extends ChangeNotifier {
   LoadingState _state = LoadingState.idle;
   String? _errorMessage;
 
-  // 'cloud' or 'on_device'
-  String _backendName = 'cloud';
-
   AIProvider(this._aiService, this._storageService) {
     _loadConversations();
   }
@@ -43,7 +40,8 @@ class AIProvider extends ChangeNotifier {
   AISummary? get currentSummary => _currentSummary;
   String get activeBackendName => _aiService.activeBackend.name;
   AIBackend get activeBackend => _aiService.activeBackend;
-  bool get isUsingOnDevice => _backendName == 'on_device';
+  // Read directly from the backend — never stale, even after callback switching.
+  bool get isUsingOnDevice => _aiService.activeBackend.isOnDevice;
   SpendingPrediction? get currentPrediction => _currentPrediction;
   List<SpendingPattern> get patterns => List.unmodifiable(_patterns);
   List<RecurringExpense> get recurringExpenses => List.unmodifiable(_recurringExpenses);
@@ -72,21 +70,10 @@ class AIProvider extends ChangeNotifier {
   LoadingState get state => _state;
   String? get errorMessage => _errorMessage;
 
-  /// Switches the active AI backend to [backend] and persists the preference.
-  Future<void> switchBackend(AIBackend backend, {String name = 'on_device'}) async {
+  /// Switches the active AI backend at runtime and notifies listeners.
+  Future<void> switchBackend(AIBackend backend) async {
     _aiService.switchBackend(backend);
-    _backendName = name;
-    if (_userId != null) {
-      await _storageService.save('ai_backend_pref_$_userId', name);
-    }
     notifyListeners();
-  }
-
-  /// Restores the backend preference saved for [userId].
-  Future<void> _loadBackendPreference(String userId) async {
-    final pref = await _storageService.load<String>('ai_backend_pref_$userId');
-    if (pref != null) _backendName = pref;
-    // Actual backend object is restored by OnDeviceAIProvider after model load.
   }
 
   /// Update the user ID for this provider
@@ -104,9 +91,7 @@ class AIProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     } else {
-      // Load conversations and backend preference for the new user
       _loadConversations();
-      _loadBackendPreference(userId);
     }
   }
 

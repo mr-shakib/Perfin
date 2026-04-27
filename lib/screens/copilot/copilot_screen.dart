@@ -15,8 +15,6 @@ import 'widgets/suggested_questions_list.dart';
 import 'widgets/loading_indicator.dart';
 import 'conversation_history_screen.dart';
 
-/// Perfin AI Assistant Tab - Conversational AI Interface
-/// Requirements: 6.1-6.10
 class CopilotScreen extends StatefulWidget {
   const CopilotScreen({super.key});
 
@@ -36,42 +34,33 @@ class _CopilotScreenState extends State<CopilotScreen> {
   }
 
   Future<void> _handleSendMessage(String message) async {
-    if (message.trim().isEmpty) {
+    if (message.trim().isEmpty) return;
+
+    final sub = context.read<SubscriptionProvider>();
+    if (!sub.canConsumeAiPrompt()) {
+      if (!mounted) return;
+      _showQuotaDialog(sub);
       return;
     }
 
-    final subscriptionProvider = context.read<SubscriptionProvider>();
-    if (!subscriptionProvider.canConsumeAiPrompt()) {
-      if (!mounted) {
-        return;
-      }
-      _showAiQuotaReachedDialog(subscriptionProvider);
-      return;
-    }
-
-    final canConsumePrompt = await subscriptionProvider.tryConsumeAiPrompt();
-    if (!canConsumePrompt) {
-      if (!mounted) {
-        return;
-      }
+    final ok = await sub.tryConsumeAiPrompt();
+    if (!ok) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to send message right now. Please try again.'),
+        SnackBar(
+          content: const Text('Unable to send right now. Please try again.'),
           behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
     }
 
-    if (!mounted) {
-      return;
-    }
-
-    final aiProvider = context.read<AIProvider>();
-    aiProvider.sendCopilotQuery(message);
+    if (!mounted) return;
+    context.read<AIProvider>().sendCopilotQuery(message);
     _messageController.clear();
 
-    // Auto-scroll to bottom after sending message
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -83,415 +72,257 @@ class _CopilotScreenState extends State<CopilotScreen> {
     });
   }
 
-  void _handleSuggestedQuestion(String question) {
-    _messageController.text = question;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
-      body: Stack(
-        children: [
-          // Main content
-          Consumer3<AIProvider, SubscriptionProvider, OnDeviceAIProvider>(
-            builder: (context, aiProvider, subscriptionProvider, onDevice, _) {
-              final hasMessages = aiProvider.chatHistory.isNotEmpty;
-
-              return CustomScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                slivers: [
-                  // Header that scrolls away
-                  SliverToBoxAdapter(
-                    child: SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Perfin',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A1A),
-                                    letterSpacing: -1,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const OnDeviceAISettingsScreen(),
-                                    ),
-                                  ),
-                                  child: _BackendChip(
-                                    label: aiProvider.activeBackendName,
-                                    isOnDevice: aiProvider.isUsingOnDevice,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                _buildUsageBadge(subscriptionProvider),
-                                const SizedBox(width: 8),
-                                // On-device AI settings button
-                                IconButton(
-                                  icon: const Icon(Icons.phone_android_outlined),
-                                  iconSize: 22,
-                                  color: aiProvider.isUsingOnDevice
-                                      ? AppColors.secondary
-                                      : const Color(0xFF666666),
-                                  onPressed: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const OnDeviceAISettingsScreen(),
-                                    ),
-                                  ),
-                                  tooltip: 'On-Device AI settings',
-                                ),
-                                const SizedBox(width: 4),
-                                // New conversation button
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline),
-                                  iconSize: 24,
-                                  color: const Color(0xFF666666),
-                                  onPressed: () {
-                                    context
-                                        .read<AIProvider>()
-                                        .createNewConversation();
-                                  },
-                                  tooltip: 'New conversation',
-                                ),
-                                const SizedBox(width: 8),
-                                // Conversation history button
-                                IconButton(
-                                  icon: const Icon(Icons.history),
-                                  iconSize: 24,
-                                  color: const Color(0xFF666666),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ConversationHistoryScreen(),
-                                      ),
-                                    );
-                                  },
-                                  tooltip: 'Conversation history',
-                                ),
-                                const SizedBox(width: 8),
-                                // Clear current conversation button
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  iconSize: 24,
-                                  color: const Color(0xFF666666),
-                                  onPressed: () {
-                                    _showClearHistoryDialog();
-                                  },
-                                  tooltip: 'Clear current conversation',
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+      backgroundColor: const Color(0xFFF4F3EE),
+      body: Consumer3<AIProvider, SubscriptionProvider, OnDeviceAIProvider>(
+        builder: (context, ai, sub, onDevice, _) {
+          final hasMessages = ai.chatHistory.isNotEmpty;
+          return Column(
+            children: [
+              _Header(ai: ai, sub: sub, onDevice: onDevice,
+                  onNewChat: () => ai.createNewConversation(),
+                  onHistory: _openHistory,
+                  onClear: _showClearDialog),
+              Expanded(
+                child: hasMessages
+                    ? _MessageList(
+                        ai: ai,
+                        scrollController: _scrollController,
+                      )
+                    : _EmptyState(
+                        onQuestionTap: (q) {
+                          _messageController.text = q;
+                        },
                       ),
-                    ),
-                  ),
-
-                  // Chat content
-                  if (!hasMessages)
-                    SliverFillRemaining(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: SuggestedQuestionsList(
-                            onQuestionTap: _handleSuggestedQuestion,
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: EdgeInsets.only(
-                        bottom: 100 + MediaQuery.of(context).padding.bottom,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            if (index == aiProvider.chatHistory.length) {
-                              if (aiProvider.state == LoadingState.loading) {
-                                return const Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 16,
-                                    left: 20,
-                                    right: 20,
-                                  ),
-                                  child: LoadingIndicator(),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            }
-
-                            final message = aiProvider.chatHistory[index];
-                            final isUser = message.role == MessageRole.user;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 16,
-                                left: 20,
-                                right: 20,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: isUser
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  // Message bubble
-                                  if (isUser)
-                                    _buildUserMessage(message)
-                                  else
-                                    AIResponseCard(message: message),
-
-                                  // Timestamp
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 4,
-                                      left: 8,
-                                      right: 8,
-                                    ),
-                                    child: Text(
-                                      _formatTimestamp(message.timestamp),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF999999),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          childCount:
-                              aiProvider.chatHistory.length +
-                              (aiProvider.state == LoadingState.loading
-                                  ? 1
-                                  : 0),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-
-          // Input field positioned at bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ChatInputField(
-              controller: _messageController,
-              onSend: _handleSendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUsageBadge(SubscriptionProvider subscriptionProvider) {
-    final label = subscriptionProvider.hasUnlimitedAiPrompts
-        ? 'AI Unlimited'
-        : 'AI ${subscriptionProvider.aiPromptsUsed}/${subscriptionProvider.aiPromptsLimit ?? 0}';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserMessage(ChatMessage message) {
-    return GestureDetector(
-      onLongPress: () => _copyMessage(message.content),
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                message.content,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                  height: 1.4,
-                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.copy,
-              size: 14,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ],
-        ),
+              ChatInputField(
+                controller: _messageController,
+                onSend: _handleSendMessage,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _copyMessage(String content) {
-    Clipboard.setData(ClipboardData(text: content));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Message copied to clipboard'),
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  void _openHistory() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ConversationHistoryScreen()),
+      );
 
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inDays < 1) {
-      return DateFormat('h:mm a').format(timestamp);
-    } else if (difference.inDays < 7) {
-      return DateFormat('EEE h:mm a').format(timestamp);
-    } else {
-      return DateFormat('MMM d, h:mm a').format(timestamp);
-    }
-  }
-
-  void _showClearHistoryDialog() {
+  void _showClearDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+      builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Clear Chat History',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
+        title: const Text('Clear conversation?',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: const Text(
-          'Are you sure you want to clear this conversation? This action cannot be undone.',
-          style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
-        ),
+            'This conversation will be deleted. This cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Color(0xFF666666),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               context.read<AIProvider>().clearChatHistory();
               Navigator.pop(context);
             },
-            child: const Text(
-              'Clear',
-              style: TextStyle(
-                color: Color(0xFFFF3B30),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear'),
           ),
         ],
       ),
     );
   }
 
-  void _showAiQuotaReachedDialog(SubscriptionProvider subscriptionProvider) {
-    final planName = subscriptionProvider.currentPlan.displayName;
-    final used = subscriptionProvider.aiPromptsUsed;
-    final limit = subscriptionProvider.aiPromptsLimit ?? 0;
-
-    showDialog<void>(
+  void _showQuotaDialog(SubscriptionProvider sub) {
+    showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+      builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'AI Limit Reached',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
+        title: const Text('AI Limit Reached',
+            style: TextStyle(fontWeight: FontWeight.w700)),
         content: Text(
-          '$planName plan usage: $used/$limit prompts this month. Upgrade to Pro for unlimited AI Copilot.',
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF666666),
-            height: 1.4,
-          ),
-        ),
+            '${sub.currentPlan.displayName} plan: ${sub.aiPromptsUsed}/'
+            '${sub.aiPromptsLimit ?? 0} prompts this month.\n'
+            'Upgrade to Pro for unlimited AI.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Later',
-              style: TextStyle(
-                color: Color(0xFF666666),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Later')),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, '/subscription');
             },
-            child: const Text(
-              'View Plans',
-              style: TextStyle(
-                color: Color(0xFF1A1A1A),
-                fontWeight: FontWeight.w700,
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            child: const Text('View Plans',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
+  final AIProvider ai;
+  final SubscriptionProvider sub;
+  final OnDeviceAIProvider onDevice;
+  final VoidCallback onNewChat;
+  final VoidCallback onHistory;
+  final VoidCallback onClear;
+
+  const _Header({
+    required this.ai,
+    required this.sub,
+    required this.onDevice,
+    required this.onNewChat,
+    required this.onHistory,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = sub.hasUnlimitedAiPrompts
+        ? '∞'
+        : '${sub.aiPromptsUsed}/${sub.aiPromptsLimit ?? 0}';
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
+          child: Row(
+            children: [
+              // Avatar
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.auto_awesome,
+                    color: Colors.white, size: 20),
               ),
+              const SizedBox(width: 12),
+              // Title + backend
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Perfin AI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const OnDeviceAISettingsScreen()),
+                      ),
+                      child: _BackendPill(
+                        label: ai.activeBackendName,
+                        isOnDevice: ai.isUsingOnDevice,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Usage badge
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt_rounded,
+                        size: 13, color: AppColors.secondary),
+                    const SizedBox(width: 3),
+                    Text(label,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              // Action icons
+              _HeaderIcon(
+                icon: Icons.add_rounded,
+                tooltip: 'New chat',
+                onTap: onNewChat,
+              ),
+              _HeaderIcon(
+                icon: Icons.history_rounded,
+                tooltip: 'History',
+                onTap: onHistory,
+              ),
+              _HeaderIcon(
+                icon: Icons.delete_outline_rounded,
+                tooltip: 'Clear',
+                onTap: onClear,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BackendPill extends StatelessWidget {
+  final String label;
+  final bool isOnDevice;
+  const _BackendPill({required this.label, required this.isOnDevice});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: isOnDevice
+            ? AppColors.secondary.withValues(alpha: 0.25)
+            : Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isOnDevice ? Icons.phone_android_outlined : Icons.cloud_outlined,
+            size: 10,
+            color: isOnDevice ? AppColors.secondary : Colors.white70,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isOnDevice ? AppColors.secondary : Colors.white70,
             ),
           ),
         ],
@@ -500,40 +331,205 @@ class _CopilotScreenState extends State<CopilotScreen> {
   }
 }
 
-/// Small tappable chip in the Copilot header showing the active AI backend.
-class _BackendChip extends StatelessWidget {
-  final String label;
-  final bool isOnDevice;
-
-  const _BackendChip({required this.label, required this.isOnDevice});
+class _HeaderIcon extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  const _HeaderIcon(
+      {required this.icon, required this.tooltip, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: isOnDevice
-            ? AppColors.secondary.withValues(alpha: 0.15)
-            : AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: Colors.white70, size: 22),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isOnDevice ? Icons.phone_android_outlined : Icons.cloud_outlined,
-            size: 11,
-            color: isOnDevice ? AppColors.secondary : AppColors.primaryLight,
+    );
+  }
+}
+
+// ── Message list ──────────────────────────────────────────────────────────────
+
+class _MessageList extends StatelessWidget {
+  final AIProvider ai;
+  final ScrollController scrollController;
+  const _MessageList({required this.ai, required this.scrollController});
+
+  @override
+  Widget build(BuildContext context) {
+    final count = ai.chatHistory.length +
+        (ai.state == LoadingState.loading ? 1 : 0);
+
+    return ListView.builder(
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      itemCount: count,
+      itemBuilder: (context, i) {
+        // Loading indicator at the end
+        if (i == ai.chatHistory.length) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 4, bottom: 16),
+            child: LoadingIndicator(),
+          );
+        }
+
+        final msg = ai.chatHistory[i];
+        final isUser = msg.role == MessageRole.user;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment:
+                isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              isUser
+                  ? _UserBubble(message: msg)
+                  : AIResponseCard(message: msg),
+              const SizedBox(height: 4),
+              Text(
+                _formatTime(msg.timestamp),
+                style: const TextStyle(
+                    fontSize: 10, color: Color(0xFFAFB8C4)),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          Text(
-            label,
+        );
+      },
+    );
+  }
+
+  String _formatTime(DateTime ts) {
+    final diff = DateTime.now().difference(ts);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return DateFormat('h:mm a').format(ts);
+    if (diff.inDays < 7) return DateFormat('EEE h:mm a').format(ts);
+    return DateFormat('MMM d').format(ts);
+  }
+}
+
+// ── User bubble ───────────────────────────────────────────────────────────────
+
+class _UserBubble extends StatelessWidget {
+  final ChatMessage message;
+  const _UserBubble({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: message.content));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Copied'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.primary,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      },
+      child: Container(
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.72),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(18),
+            topRight: Radius.circular(18),
+            bottomLeft: Radius.circular(18),
+            bottomRight: Radius.circular(4),
+          ),
+        ),
+        child: Text(
+          message.content,
+          style: const TextStyle(
+              fontSize: 15, color: Colors.white, height: 1.45),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+class _EmptyState extends StatelessWidget {
+  final Function(String) onQuestionTap;
+  const _EmptyState({required this.onQuestionTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+      child: Column(
+        children: [
+          // Hero icon
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.secondary, Color(0xFFFFB347)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.secondary.withValues(alpha: 0.35),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.auto_awesome,
+                color: Colors.white, size: 36),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Hi, I\'m Perfin AI!',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: isOnDevice ? AppColors.secondary : AppColors.primaryLight,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+              letterSpacing: -0.5,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            'Ask me anything about your spending,\nbudgets, goals, and financial health.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              color: AppColors.primaryLight,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Suggestion chips
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Try asking',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryLight,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SuggestedQuestionsList(onQuestionTap: onQuestionTap),
         ],
       ),
     );

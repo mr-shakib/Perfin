@@ -25,6 +25,7 @@ class AIService {
   final BudgetService _budgetService;
   final GoalService _goalService;
   final InsightService _insightService;
+  late final GroqBackend _groqBackend;
   AIBackend _backend;
 
   // Essential categories that should not be suggested for reduction
@@ -49,6 +50,7 @@ class AIService {
         _goalService = goalService,
         _insightService = insightService,
         _backend = GroqBackend(apiKey) {
+    _groqBackend = _backend as GroqBackend;
     if (apiKey.isEmpty) {
       debugPrint('WARNING: AIService started with empty Groq API key.');
     }
@@ -58,6 +60,12 @@ class AIService {
   void switchBackend(AIBackend backend) {
     _backend = backend;
     debugPrint('AIService: switched to ${backend.name}');
+  }
+
+  /// Resets back to the original Groq cloud backend.
+  void resetToCloudBackend() {
+    _backend = _groqBackend;
+    debugPrint('AIService: reset to cloud backend');
   }
 
   AIBackend get activeBackend => _backend;

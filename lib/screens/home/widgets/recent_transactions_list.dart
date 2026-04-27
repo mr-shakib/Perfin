@@ -4,10 +4,8 @@ import '../../../providers/transaction_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../models/transaction.dart';
 import 'package:intl/intl.dart';
-import '../../../theme/app_colors.dart';
 
-/// Recent Transactions List - Clean Minimal Design
-/// Requirements: 1.7-1.8
+/// Compact list of latest transactions.
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
 
@@ -46,51 +44,17 @@ class RecentTransactionsList extends StatelessWidget {
 
         return Container(
           decoration: _cardDecoration(),
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Text(
-                    'Recent Transactions',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF172132),
-                      letterSpacing: -0.25,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.creamCard,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      DateFormat('MMM').format(DateTime.now()),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF647083),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
               ...recentTransactions.asMap().entries.map((entry) {
                 final index = entry.key;
                 final transaction = entry.value;
                 final isLast = index == recentTransactions.length - 1;
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
                   child: _buildTransactionItem(
                     context,
                     transaction,

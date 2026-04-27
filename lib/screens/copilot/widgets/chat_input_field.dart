@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 
-/// Multi-line text input with send button
-/// Requirements: 6.2
 class ChatInputField extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onSend;
@@ -19,27 +17,41 @@ class ChatInputField extends StatefulWidget {
   State<ChatInputField> createState() => _ChatInputFieldState();
 }
 
-class _ChatInputFieldState extends State<ChatInputField> {
+class _ChatInputFieldState extends State<ChatInputField>
+    with SingleTickerProviderStateMixin {
   bool _hasText = false;
+  late AnimationController _sendAnim;
+  late Animation<double> _scaleAnim;
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onTextChanged);
+    _sendAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _sendAnim, curve: Curves.easeOutBack),
+    );
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onTextChanged);
+    _sendAnim.dispose();
     super.dispose();
   }
 
   void _onTextChanged() {
     final hasText = widget.controller.text.trim().isNotEmpty;
     if (hasText != _hasText) {
-      setState(() {
-        _hasText = hasText;
-      });
+      setState(() => _hasText = hasText);
+      if (hasText) {
+        _sendAnim.forward();
+      } else {
+        _sendAnim.reverse();
+      }
     }
   }
 
@@ -50,98 +62,81 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
+    final bottom = MediaQuery.of(context).padding.bottom;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.creamLight,
-        border: Border(
-          top: BorderSide(
-            color: const Color(0xFFE5E5E5),
-            width: 1,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
-        ),
+        ],
       ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 16,
-        bottom: bottomPadding > 0 ? bottomPadding + 16 : 16,
-      ),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, bottom > 0 ? bottom + 8 : 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Text input
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(
-                minHeight: 44,
-                maxHeight: 120,
-              ),
+              constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
               decoration: BoxDecoration(
-                color: AppColors.creamLight,
+                color: const Color(0xFFF4F3EE),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: const Color(0xFFE5E5E5),
-                  width: 1,
-                ),
               ),
               child: TextField(
                 controller: widget.controller,
                 maxLines: null,
                 maxLength: widget.maxCharacters,
                 textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: 'Ask about your finances...',
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF999999),
-                    fontSize: 15,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  counterText: '',
-                ),
                 style: const TextStyle(
                   fontSize: 15,
-                  color: Color(0xFF1A1A1A),
+                  color: Color(0xFF1E293B),
                   height: 1.4,
                 ),
+                decoration: const InputDecoration(
+                  hintText: 'Ask about your finances…',
+                  hintStyle: TextStyle(color: Color(0xFFAFB8C4), fontSize: 15),
+                  border: InputBorder.none,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  counterText: '',
+                ),
                 onSubmitted: (_) {
-                  // Allow Shift+Enter for new line, Enter alone sends
-                  if (_hasText) {
-                    _handleSend();
-                  }
+                  if (_hasText) _handleSend();
                 },
               ),
             ),
           ),
-          
-          const SizedBox(width: 12),
-          
-          // Send button
-          GestureDetector(
-            onTap: _hasText ? _handleSend : null,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: _hasText 
-                    ? const Color(0xFF1A1A1A) 
-                    : AppColors.creamLight,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFE5E5E5),
-                  width: 1,
+          const SizedBox(width: 10),
+          ScaleTransition(
+            scale: _scaleAnim,
+            child: GestureDetector(
+              onTap: _hasText ? _handleSend : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _hasText ? AppColors.secondary : const Color(0xFFE2E8F0),
+                  shape: BoxShape.circle,
+                  boxShadow: _hasText
+                      ? [
+                          BoxShadow(
+                            color: AppColors.secondary.withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : [],
                 ),
-              ),
-              child: Icon(
-                Icons.arrow_upward,
-                color: _hasText ? Colors.white : const Color(0xFF999999),
-                size: 20,
+                child: Icon(
+                  Icons.arrow_upward_rounded,
+                  color: _hasText ? Colors.white : const Color(0xFFCBD5E1),
+                  size: 22,
+                ),
               ),
             ),
           ),

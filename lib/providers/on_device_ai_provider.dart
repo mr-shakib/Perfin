@@ -19,6 +19,19 @@ class OnDeviceAIProvider extends ChangeNotifier {
   // Active stream subscriptions for in-progress downloads.
   final Map<String, StreamSubscription<ModelDownloadProgress>> _subs = {};
 
+  // Wired by main.dart so backend switching happens before notifyListeners(),
+  // avoiding the unmounted-context bug in UI callbacks.
+  void Function(OnDeviceAIService service)? _onModelActivated;
+  void Function()? _onModelDeactivated;
+
+  void setBackendCallbacks({
+    required void Function(OnDeviceAIService) onActivated,
+    required void Function() onDeactivated,
+  }) {
+    _onModelActivated = onActivated;
+    _onModelDeactivated = onDeactivated;
+  }
+
   // Device RAM in MB — loaded once on first use.
   int? _deviceRamMB;
 
@@ -119,13 +132,18 @@ class OnDeviceAIProvider extends ChangeNotifier {
     final path = await _downloadService.getModelPath(model.id);
     if (path == null) return;
     await _aiService.loadModel(model.id, path);
-    // Persist last-loaded model so we can auto-load on next launch.
+    // Switch backend BEFORE notifyListeners to avoid the unmounted-context bug:
+    // notifyListeners() rebuilds ModelDownloadCard, unmounting the "Use this
+    // model" button's context — if switchBackend were called from UI code after
+    // that await, context.mounted would be false and the switch would be skipped.
+    _onModelActivated?.call(_aiService);
     await _storage.save('on_device_last_loaded_model', model.id);
     notifyListeners();
   }
 
   Future<void> unloadModel() async {
     await _aiService.unloadModel();
+    _onModelDeactivated?.call();
     await _storage.delete('on_device_last_loaded_model');
     notifyListeners();
   }

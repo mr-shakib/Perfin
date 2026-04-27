@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/ai_provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/currency_provider.dart';
 
-/// AI Summary Card - Clean Minimal Design
-/// Requirements: 2.1-2.8
+/// Compact AI insight card with metrics-first hierarchy.
 class AISummaryCard extends StatelessWidget {
   const AISummaryCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AIProvider>(
-      builder: (context, aiProvider, _) {
+    return Consumer2<AIProvider, CurrencyProvider>(
+      builder: (context, aiProvider, currencyProvider, _) {
         final summary = aiProvider.currentSummary;
 
         if (aiProvider.state == LoadingState.loading && summary == null) {
@@ -26,8 +26,10 @@ class AISummaryCard extends StatelessWidget {
           return _buildInsufficientDataCard(summary.summaryText);
         }
 
+        final netFlow = summary.totalIncome - summary.totalSpending;
+
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           decoration: _cardDecoration(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,25 +37,25 @@ class AISummaryCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF2B3E5D), Color(0xFF35537D)],
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(11),
                     ),
                     child: const Icon(
                       Icons.auto_awesome,
                       color: Colors.white,
-                      size: 18,
+                      size: 17,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   const Expanded(
                     child: Text(
-                      'AI Briefing',
+                      'AI Snapshot',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF172132),
                         letterSpacing: -0.2,
@@ -74,7 +76,7 @@ class AISummaryCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '${summary.confidenceScore}% confidence',
+                      '${summary.confidenceScore}%',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -85,96 +87,60 @@ class AISummaryCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-
-              Text(
-                summary.summaryText,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.55,
-                  color: Color(0xFF4D596B),
-                  fontWeight: FontWeight.w500,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildMetricPill(
+                    icon: netFlow >= 0
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    label: 'Net',
+                    value:
+                        '${netFlow >= 0 ? '+' : '-'}${currencyProvider.formatWhole(netFlow.abs())}',
+                    color: netFlow >= 0
+                        ? const Color(0xFF2EA86F)
+                        : const Color(0xFFD25A50),
+                  ),
+                  _buildMetricPill(
+                    icon: Icons.pie_chart_rounded,
+                    label: 'Top',
+                    value: _truncate(summary.topSpendingCategory),
+                    color: const Color(0xFF3E516F),
+                  ),
+                  _buildMetricPill(
+                    icon: Icons.warning_amber_rounded,
+                    label: 'Alerts',
+                    value: '${summary.anomalies.length}',
+                    color: summary.anomalies.isNotEmpty
+                        ? const Color(0xFFC96B1A)
+                        : const Color(0xFF2EA86F),
+                  ),
+                ],
+              ),
+              if (summary.insights.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: summary.insights
+                      .take(2)
+                      .map((insight) => _buildInsightChip(insight))
+                      .toList(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 7,
+                  value: (summary.confidenceScore / 100).clamp(0.0, 1.0),
+                  backgroundColor: const Color(0xFFE6EBF4),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF3E628E),
+                  ),
                 ),
               ),
-
-              if (summary.insights.isNotEmpty) ...[
-                const SizedBox(height: 18),
-                ...summary.insights
-                    .take(3)
-                    .map(
-                      (insight) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 22,
-                              height: 22,
-                              margin: const EdgeInsets.only(top: 1),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF0FA),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                size: 14,
-                                color: Color(0xFF3E516F),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                insight,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  height: 1.5,
-                                  color: Color(0xFF5C6778),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-              ],
-
-              if (summary.anomalies.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF4EB),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFFFADCC2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Color(0xFFC96B1A),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${summary.anomalies.length} anomalies detected',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFB05E1A),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         );
@@ -182,9 +148,70 @@ class AISummaryCard extends StatelessWidget {
     );
   }
 
+  Widget _buildMetricPill({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FBFF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE4EAF4), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            '$label $value',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2B3D59),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightChip(String insight) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F9FD),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.bolt_rounded, size: 14, color: Color(0xFF4A6387)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              _truncate(insight, maxChars: 52),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF4D596B),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoadingCard() {
     return Container(
-      height: 156,
+      height: 140,
       decoration: _cardDecoration(),
       child: const Center(
         child: Column(
@@ -211,7 +238,7 @@ class AISummaryCard extends StatelessWidget {
 
   Widget _buildErrorCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: _cardDecoration(),
       child: const Row(
         children: [
@@ -234,7 +261,7 @@ class AISummaryCard extends StatelessWidget {
 
   Widget _buildInsufficientDataCard(String message) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: _cardDecoration(),
       child: Row(
         children: [
@@ -246,7 +273,7 @@ class AISummaryCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              message,
+              _truncate(message, maxChars: 68),
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF647083),
@@ -257,6 +284,14 @@ class AISummaryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _truncate(String value, {int maxChars = 18}) {
+    final normalized = value.trim().replaceAll(RegExp(r'\\s+'), ' ');
+    if (normalized.length <= maxChars) {
+      return normalized;
+    }
+    return '${normalized.substring(0, maxChars - 1)}…';
   }
 
   BoxDecoration _cardDecoration() {

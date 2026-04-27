@@ -4,8 +4,7 @@ import '../../../providers/budget_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/currency_provider.dart';
 
-/// Budget Status List - Clean Minimal Design
-/// Requirements: 1.4-1.6
+/// Category budget progress list.
 class BudgetStatusList extends StatelessWidget {
   const BudgetStatusList({super.key});
 
@@ -44,30 +43,10 @@ class BudgetStatusList extends StatelessWidget {
 
             return Container(
               decoration: _cardDecoration(),
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Category Budgets',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF172132),
-                      letterSpacing: -0.25,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'How your spending compares to limits',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF7E8797),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
                   ...categoryBudgets.entries.map((entry) {
                     final category = entry.key;
                     final budgetAmount = entry.value;
@@ -81,7 +60,7 @@ class BudgetStatusList extends StatelessWidget {
                     );
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 10),
                       child: _buildBudgetItem(
                         category: category,
                         spent: spent,
@@ -125,7 +104,7 @@ class BudgetStatusList extends StatelessWidget {
       case BudgetStatus.overBudget:
         statusColor = const Color(0xFFD25A50);
         statusBackground = const Color(0xFFFFEFEE);
-        statusLabel = 'Over budget';
+        statusLabel = 'Over';
         break;
     }
 
@@ -185,7 +164,7 @@ class BudgetStatusList extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${currencyProvider.formatWhole(spent)} of ${currencyProvider.formatWhole(budget)}',
+                  '${currencyProvider.formatWhole(spent)} / ${currencyProvider.formatWhole(budget)}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF7E8797),
