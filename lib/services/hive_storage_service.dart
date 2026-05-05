@@ -131,23 +131,40 @@ class HiveStorageService implements StorageService {
     if (value == null) {
       return null;
     }
-    
-    // Handle primitive types
+
+    // Handle primitive types (exact match — no cast needed)
     if (value is T) {
       return value;
     }
-    
+
+    // Hive returns Map<dynamic, dynamic>; coerce to Map<String, dynamic>
+    // when that is what the caller expects.
+    if (value is Map && T == Map<String, dynamic>) {
+      return Map<String, dynamic>.from(
+        value.map((k, v) => MapEntry(k.toString(), v)),
+      ) as T;
+    }
+
     // Handle string-encoded JSON
     if (value is String && T != String) {
       try {
-        return jsonDecode(value) as T;
-      } catch (e) {
-        // If decode fails, return as-is if type matches
-        return value is T ? value as T : null;
+        final decoded = jsonDecode(value);
+        if (decoded is Map && T == Map<String, dynamic>) {
+          return Map<String, dynamic>.from(
+            decoded.map((k, v) => MapEntry(k.toString(), v)),
+          ) as T;
+        }
+        return decoded as T;
+      } catch (_) {
+        return null;
       }
     }
-    
-    return value as T?;
+
+    try {
+      return value as T;
+    } catch (_) {
+      return null;
+    }
   }
 }
 

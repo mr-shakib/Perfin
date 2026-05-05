@@ -35,7 +35,7 @@ class SignupNameField extends StatelessWidget {
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.words,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           onFieldSubmitted: (_) {
             if (nextFocusNode != null) {
               nextFocusNode!.requestFocus();
@@ -52,7 +52,7 @@ class SignupNameField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -99,7 +99,7 @@ class SignupEmailField extends StatelessWidget {
           focusNode: focusNode,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           onFieldSubmitted: (_) {
             if (nextFocusNode != null) {
               nextFocusNode!.requestFocus();
@@ -116,7 +116,7 @@ class SignupEmailField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -170,7 +170,7 @@ class _SignupPasswordFieldState extends State<SignupPasswordField> {
           focusNode: widget.focusNode,
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.next,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           onFieldSubmitted: (_) {
             if (widget.nextFocusNode != null) {
               widget.nextFocusNode!.requestFocus();
@@ -195,7 +195,7 @@ class _SignupPasswordFieldState extends State<SignupPasswordField> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -252,7 +252,7 @@ class _SignupConfirmPasswordFieldState extends State<SignupConfirmPasswordField>
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => widget.onSubmit(),
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           decoration: InputDecoration(
             hintText: 'Confirm password',
             hintStyle: TextStyle(color: AppColors.neutral400),
@@ -272,7 +272,7 @@ class _SignupConfirmPasswordFieldState extends State<SignupConfirmPasswordField>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

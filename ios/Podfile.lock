@@ -1,6 +1,10 @@
 PODS:
   - app_links (6.4.1):
     - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
+  - fllama (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
@@ -17,6 +21,8 @@ PODS:
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - fllama (from `.symlinks/plugins/fllama/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -27,6 +33,10 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   app_links:
     :path: ".symlinks/plugins/app_links/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
+  fllama:
+    :path: ".symlinks/plugins/fllama/ios"
   Flutter:
     :path: Flutter
   flutter_local_notifications:
@@ -42,6 +52,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
+  device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
+  fllama: 3b57c5b47a584844e4cb82c8476237d59b8db74c
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: 395056b3175ba4f08480a7c5de30cd36d69827e4
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
@@ -49,6 +61,6 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 091d04c95dc9c301319223c15d7bceb0b1f87d88
 
 COCOAPODS: 1.16.2

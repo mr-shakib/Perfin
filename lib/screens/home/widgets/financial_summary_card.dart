@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/currency_provider.dart';
 
-/// Financial Summary Card - Clean Minimal Design
-/// Requirements: 1.1-1.3
+/// Financial Summary hero card with compact metrics.
 class FinancialSummaryCard extends StatelessWidget {
   const FinancialSummaryCard({super.key});
 
@@ -16,6 +15,9 @@ class FinancialSummaryCard extends StatelessWidget {
         final summary = transactionProvider.currentMonthSummary;
         final currentBalance = transactionProvider.currentBalance;
         final netFlow = summary.totalIncome - summary.totalExpense;
+        final utilization = summary.totalIncome > 0
+            ? (summary.totalExpense / summary.totalIncome).clamp(0.0, 1.0)
+            : 0.0;
 
         return Container(
           padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
@@ -89,17 +91,41 @@ class FinancialSummaryCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                netFlow >= 0
-                    ? 'Net flow is positive this month'
-                    : 'Net flow needs attention this month',
-                style: const TextStyle(
-                  color: Color(0xFFC9D4E6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+              Row(
+                children: [
+                  Icon(
+                    netFlow >= 0
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    color: netFlow >= 0
+                        ? const Color(0xFF8EE5BA)
+                        : const Color(0xFFFFB7AE),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Net ${netFlow >= 0 ? '+' : '-'}${currencyProvider.formatWhole(netFlow.abs())}',
+                    style: const TextStyle(
+                      color: Color(0xFFC9D4E6),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 7,
+                  value: utilization,
+                  backgroundColor: Colors.white.withValues(alpha: 0.14),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF8CB4E7),
+                  ),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 18),
               Row(
                 children: [
                   Expanded(

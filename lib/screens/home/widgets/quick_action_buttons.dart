@@ -4,8 +4,7 @@ import '../../budget/manage_budget_screen.dart';
 import '../../insights/insights_screen.dart';
 import '../../../theme/app_colors.dart';
 
-/// Quick Action Buttons - Clean Minimal Design
-/// Requirements: 1.9
+/// Quick action row with icon-first compact cards.
 class QuickActionButtons extends StatelessWidget {
   const QuickActionButtons({super.key});
 
@@ -17,7 +16,6 @@ class QuickActionButtons extends StatelessWidget {
           child: _buildButton(
             context,
             label: 'Add',
-            subtitle: 'Transaction',
             icon: Icons.add_rounded,
             iconColor: Colors.white,
             backgroundColor: const Color(0xFF24354F),
@@ -36,7 +34,6 @@ class QuickActionButtons extends StatelessWidget {
           child: _buildButton(
             context,
             label: 'Insights',
-            subtitle: 'AI trends',
             icon: Icons.insights_rounded,
             iconColor: const Color(0xFF24354F),
             backgroundColor: Colors.white,
@@ -53,7 +50,6 @@ class QuickActionButtons extends StatelessWidget {
           child: _buildButton(
             context,
             label: 'Budget',
-            subtitle: 'Limits',
             icon: Icons.pie_chart_outline_rounded,
             iconColor: const Color(0xFF24354F),
             backgroundColor: Colors.white,
@@ -74,7 +70,6 @@ class QuickActionButtons extends StatelessWidget {
   Widget _buildButton(
     BuildContext context, {
     required String label,
-    required String subtitle,
     required IconData icon,
     required Color backgroundColor,
     required Color iconColor,
@@ -83,6 +78,7 @@ class QuickActionButtons extends StatelessWidget {
     final isPrimary = backgroundColor == const Color(0xFF24354F);
 
     return Container(
+      height: 98,
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
@@ -94,9 +90,9 @@ class QuickActionButtons extends StatelessWidget {
           BoxShadow(
             color: const Color(
               0xFF1D2430,
-            ).withValues(alpha: isPrimary ? 0.18 : 0.08),
-            blurRadius: isPrimary ? 20 : 12,
-            offset: const Offset(0, 8),
+            ).withValues(alpha: isPrimary ? 0.16 : 0.07),
+            blurRadius: isPrimary ? 18 : 10,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -105,41 +101,30 @@ class QuickActionButtons extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 16, 12, 14),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     color: isPrimary
                         ? Colors.white.withValues(alpha: 0.2)
                         : AppColors.creamCard,
-                    borderRadius: BorderRadius.circular(11),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: iconColor, size: 20),
+                  child: Icon(icon, color: iconColor, size: 21),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 Text(
                   label,
                   style: TextStyle(
                     color: isPrimary ? Colors.white : const Color(0xFF1A2333),
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: isPrimary
-                        ? const Color(0xFFD5E0F2)
-                        : const Color(0xFF7B808A),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

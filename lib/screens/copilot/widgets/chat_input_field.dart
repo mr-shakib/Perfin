@@ -1,147 +1,127 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 
-/// Multi-line text input with send button
-/// Requirements: 6.2
 class ChatInputField extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onSend;
-  final int maxCharacters;
 
   const ChatInputField({
     super.key,
     required this.controller,
     required this.onSend,
-    this.maxCharacters = 1000,
   });
 
   @override
   State<ChatInputField> createState() => _ChatInputFieldState();
 }
 
-class _ChatInputFieldState extends State<ChatInputField> {
+class _ChatInputFieldState extends State<ChatInputField>
+    with SingleTickerProviderStateMixin {
   bool _hasText = false;
+  late AnimationController _sendAnim;
+  late Animation<double> _scaleAnim;
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onTextChanged);
+    _sendAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
+    _scaleAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _sendAnim, curve: Curves.easeOutBack),
+    );
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onTextChanged);
+    _sendAnim.dispose();
     super.dispose();
   }
 
   void _onTextChanged() {
     final hasText = widget.controller.text.trim().isNotEmpty;
     if (hasText != _hasText) {
-      setState(() {
-        _hasText = hasText;
-      });
+      setState(() => _hasText = hasText);
+      hasText ? _sendAnim.forward() : _sendAnim.reverse();
     }
   }
 
   void _handleSend() {
-    if (widget.controller.text.trim().isEmpty) return;
+    if (!_hasText) return;
     widget.onSend(widget.controller.text);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.creamLight,
-        border: Border(
-          top: BorderSide(
-            color: const Color(0xFFE5E5E5),
-            width: 1,
-          ),
+        color: Colors.white,
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE8E5DC), width: 0.5),
         ),
       ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 16,
-        bottom: bottomPadding > 0 ? bottomPadding + 16 : 16,
-      ),
+      padding: EdgeInsets.fromLTRB(16, 10, 16, bottomPad > 0 ? bottomPad + 6 : 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Text input
+          // Text field
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(
-                minHeight: 44,
-                maxHeight: 120,
-              ),
+              constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
               decoration: BoxDecoration(
-                color: AppColors.creamLight,
+                color: const Color(0xFFF2F1ED),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: const Color(0xFFE5E5E5),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFFDEDCD6), width: 1),
               ),
               child: TextField(
                 controller: widget.controller,
                 maxLines: null,
-                maxLength: widget.maxCharacters,
+                maxLength: 1000,
                 textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: 'Ask about your finances...',
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF999999),
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF1A2333),
+                  height: 1.4,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Ask about your finances…',
+                  hintStyle: TextStyle(
+                    color: Color(0xFFADB3BE),
                     fontSize: 15,
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                   counterText: '',
                 ),
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF1A1A1A),
-                  height: 1.4,
-                ),
-                onSubmitted: (_) {
-                  // Allow Shift+Enter for new line, Enter alone sends
-                  if (_hasText) {
-                    _handleSend();
-                  }
-                },
+                onSubmitted: (_) => _handleSend(),
               ),
             ),
           ),
-          
-          const SizedBox(width: 12),
-          
+          const SizedBox(width: 10),
           // Send button
-          GestureDetector(
-            onTap: _hasText ? _handleSend : null,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: _hasText 
-                    ? const Color(0xFF1A1A1A) 
-                    : AppColors.creamLight,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFE5E5E5),
-                  width: 1,
+          ScaleTransition(
+            scale: _scaleAnim,
+            child: GestureDetector(
+              onTap: _handleSend,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _hasText ? AppColors.primary : const Color(0xFFE4E2DC),
+                  shape: BoxShape.circle,
                 ),
-              ),
-              child: Icon(
-                Icons.arrow_upward,
-                color: _hasText ? Colors.white : const Color(0xFF999999),
-                size: 20,
+                child: Icon(
+                  Icons.arrow_upward_rounded,
+                  color: _hasText ? Colors.white : const Color(0xFFBBB8B0),
+                  size: 22,
+                ),
               ),
             ),
           ),

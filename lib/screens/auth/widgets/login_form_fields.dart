@@ -29,7 +29,7 @@ class LoginEmailField extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           decoration: InputDecoration(
             hintText: 'name@example.com',
             hintStyle: TextStyle(color: AppColors.neutral400),
@@ -41,7 +41,7 @@ class LoginEmailField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -110,7 +110,7 @@ class _LoginPasswordFieldState extends State<LoginPasswordField> {
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => widget.onSubmit(),
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 15, color: AppColors.neutral900),
           decoration: InputDecoration(
             hintText: 'Enter your password',
             hintStyle: TextStyle(color: AppColors.neutral400),
@@ -130,7 +130,7 @@ class _LoginPasswordFieldState extends State<LoginPasswordField> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.neutral200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

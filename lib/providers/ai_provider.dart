@@ -9,6 +9,7 @@ import '../models/goal.dart';
 import '../models/goal_feasibility_analysis.dart';
 import '../models/goal_prioritization.dart';
 import '../services/ai_service.dart';
+import '../services/ai_backend.dart';
 import '../services/storage_service.dart';
 import 'transaction_provider.dart';
 
@@ -37,6 +38,10 @@ class AIProvider extends ChangeNotifier {
 
   // Public getters
   AISummary? get currentSummary => _currentSummary;
+  String get activeBackendName => _aiService.activeBackend.name;
+  AIBackend get activeBackend => _aiService.activeBackend;
+  // Read directly from the backend — never stale, even after callback switching.
+  bool get isUsingOnDevice => _aiService.activeBackend.isOnDevice;
   SpendingPrediction? get currentPrediction => _currentPrediction;
   List<SpendingPattern> get patterns => List.unmodifiable(_patterns);
   List<RecurringExpense> get recurringExpenses => List.unmodifiable(_recurringExpenses);
@@ -65,6 +70,12 @@ class AIProvider extends ChangeNotifier {
   LoadingState get state => _state;
   String? get errorMessage => _errorMessage;
 
+  /// Switches the active AI backend at runtime and notifies listeners.
+  Future<void> switchBackend(AIBackend backend) async {
+    _aiService.switchBackend(backend);
+    notifyListeners();
+  }
+
   /// Update the user ID for this provider
   void updateUserId(String? userId) {
     _userId = userId;
@@ -80,7 +91,6 @@ class AIProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     } else {
-      // Load conversations for the new user
       _loadConversations();
     }
   }
