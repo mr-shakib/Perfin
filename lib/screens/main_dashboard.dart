@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'home/home_screen.dart';
 import 'feed/feed_screen.dart';
@@ -6,15 +7,12 @@ import 'copilot/copilot_screen.dart';
 import 'goals/goals_screen.dart';
 import 'profile/profile_screen.dart';
 
-/// Main Dashboard with bottom navigation
-/// Provides access to all main app tabs
 class MainDashboard extends StatefulWidget {
   const MainDashboard({super.key});
 
   @override
   State<MainDashboard> createState() => MainDashboardState();
 
-  /// Static method to switch tabs from anywhere in the widget tree
   static void switchTab(BuildContext context, int index) {
     context.findAncestorStateOfType<MainDashboardState>()?.switchToTab(index);
   }
@@ -44,7 +42,6 @@ class MainDashboardState extends State<MainDashboard> {
     super.dispose();
   }
 
-  /// Public method to switch tabs programmatically
   void switchToTab(int index) {
     if (index >= 0 && index < _screens.length) {
       _goToTab(index);
@@ -53,16 +50,13 @@ class MainDashboardState extends State<MainDashboard> {
 
   void _goToTab(int index) {
     if (index == _currentIndex) return;
-
-    setState(() {
-      _currentIndex = index;
-    });
-
+    HapticFeedback.selectionClick();
+    setState(() => _currentIndex = index);
     if (_pageController.hasClients) {
       _pageController.animateToPage(
         index,
-        duration: const Duration(milliseconds: 420),
-        curve: Curves.easeOutCubic,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
       );
     }
   }
@@ -76,87 +70,59 @@ class MainDashboardState extends State<MainDashboard> {
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) {
           if (_currentIndex != index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            setState(() => _currentIndex = index);
           }
         },
         children: _screens,
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFFFFFEFA).withValues(alpha: 0.82),
-                    const Color(0xFFFFF9EC).withValues(alpha: 0.7),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFFFFFFF).withValues(alpha: 0.72),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1D2430).withValues(alpha: 0.11),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFF1D2430).withValues(alpha: 0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-                child: SizedBox(
-                  height: 44,
-                  child: Row(
-                    children: [
-                      _buildNavItem(
-                        index: 0,
-                        icon: Icons.home_outlined,
-                        activeIcon: Icons.home_rounded,
-                        label: 'Home',
-                      ),
-                      _buildNavItem(
-                        index: 1,
-                        icon: Icons.view_carousel_outlined,
-                        activeIcon: Icons.view_carousel_rounded,
-                        label: 'Feed',
-                      ),
-                      _buildNavItem(
-                        index: 2,
-                        icon: Icons.chat_bubble_outline,
-                        activeIcon: Icons.chat_bubble,
-                        label: 'Perfin',
-                      ),
-                      _buildNavItem(
-                        index: 3,
-                        icon: Icons.flag_outlined,
-                        activeIcon: Icons.flag_rounded,
-                        label: 'Goals',
-                      ),
-                      _buildNavItem(
-                        index: 4,
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person_rounded,
-                        label: 'Profile',
-                      ),
-                    ],
-                  ),
-                ),
+      bottomNavigationBar: _AppleTabBar(
+        currentIndex: _currentIndex,
+        onTap: _goToTab,
+      ),
+    );
+  }
+}
+
+class _AppleTabBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _AppleTabBar({required this.currentIndex, required this.onTap});
+
+  static const _items = [
+    _TabItem(icon: Icons.house_outlined,    activeIcon: Icons.house_rounded,        label: 'Home'),
+    _TabItem(icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded,   label: 'Feed'),
+    _TabItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome,     label: 'Perfin'),
+    _TabItem(icon: Icons.flag_outlined,      activeIcon: Icons.flag_rounded,        label: 'Goals'),
+    _TabItem(icon: Icons.person_outline,     activeIcon: Icons.person_rounded,      label: 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Color(0xFFE5E5EA), width: 0.5),
+            ),
+            color: Color(0xF2F9F9F9),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: SizedBox(
+              height: 49,
+              child: Row(
+                children: List.generate(_items.length, (i) {
+                  return _AppleTabItem(
+                    item: _items[i],
+                    isActive: currentIndex == i,
+                    onTap: () => onTap(i),
+                  );
+                }),
               ),
             ),
           ),
@@ -164,62 +130,66 @@ class MainDashboardState extends State<MainDashboard> {
       ),
     );
   }
+}
 
-  Widget _buildNavItem({
-    required int index,
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-  }) {
-    final isActive = _currentIndex == index;
+class _TabItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  const _TabItem({required this.icon, required this.activeIcon, required this.label});
+}
+
+class _AppleTabItem extends StatelessWidget {
+  final _TabItem item;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _AppleTabItem({
+    required this.item,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  static const _activeColor  = Color(0xFF303E50);
+  static const _inactiveColor = Color(0xFF8E8E93);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? _activeColor : _inactiveColor;
 
     return Expanded(
-      child: InkWell(
-        onTap: () {
-          _goToTab(index);
-        },
-        borderRadius: BorderRadius.circular(14),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-          decoration: BoxDecoration(
-            color: isActive
-                ? const Color(0xFF2D4566).withValues(alpha: 0.1)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Semantics(
-            label: label,
-            selected: isActive,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              width: isActive ? 38 : 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: isActive
-                    ? const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF263A56), Color(0xFF35527A)],
-                      )
-                    : null,
-                color: isActive ? null : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isActive
-                      ? Colors.white.withValues(alpha: 0.24)
-                      : Colors.transparent,
-                  width: 1,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Semantics(
+          label: item.label,
+          selected: isActive,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Icon(
+                  isActive ? item.activeIcon : item.icon,
+                  key: ValueKey(isActive),
+                  color: color,
+                  size: 24,
                 ),
               ),
-              child: Icon(
-                isActive ? activeIcon : icon,
-                color: isActive ? Colors.white : const Color(0xFF858A93),
-                size: 18,
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  color: color,
+                  letterSpacing: -0.2,
+                ),
+                child: Text(item.label),
               ),
-            ),
+            ],
           ),
         ),
       ),

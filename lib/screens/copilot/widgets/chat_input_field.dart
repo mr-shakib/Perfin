@@ -4,13 +4,11 @@ import '../../../theme/app_colors.dart';
 class ChatInputField extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onSend;
-  final int maxCharacters;
 
   const ChatInputField({
     super.key,
     required this.controller,
     required this.onSend,
-    this.maxCharacters = 1000,
   });
 
   @override
@@ -29,9 +27,9 @@ class _ChatInputFieldState extends State<ChatInputField>
     widget.controller.addListener(_onTextChanged);
     _sendAnim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 180),
     );
-    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _sendAnim, curve: Curves.easeOutBack),
     );
   }
@@ -47,94 +45,81 @@ class _ChatInputFieldState extends State<ChatInputField>
     final hasText = widget.controller.text.trim().isNotEmpty;
     if (hasText != _hasText) {
       setState(() => _hasText = hasText);
-      if (hasText) {
-        _sendAnim.forward();
-      } else {
-        _sendAnim.reverse();
-      }
+      hasText ? _sendAnim.forward() : _sendAnim.reverse();
     }
   }
 
   void _handleSend() {
-    if (widget.controller.text.trim().isEmpty) return;
+    if (!_hasText) return;
     widget.onSend(widget.controller.text);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).padding.bottom;
+    final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE8E5DC), width: 0.5),
+        ),
       ),
-      padding: EdgeInsets.fromLTRB(16, 12, 16, bottom > 0 ? bottom + 8 : 16),
+      padding: EdgeInsets.fromLTRB(16, 10, 16, bottomPad > 0 ? bottomPad + 6 : 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // Text field
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4F3EE),
+                color: const Color(0xFFF2F1ED),
                 borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: const Color(0xFFDEDCD6), width: 1),
               ),
               child: TextField(
                 controller: widget.controller,
                 maxLines: null,
-                maxLength: widget.maxCharacters,
+                maxLength: 1000,
                 textInputAction: TextInputAction.newline,
                 style: const TextStyle(
                   fontSize: 15,
-                  color: Color(0xFF1E293B),
+                  color: Color(0xFF1A2333),
                   height: 1.4,
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Ask about your finances…',
-                  hintStyle: TextStyle(color: Color(0xFFAFB8C4), fontSize: 15),
+                  hintStyle: TextStyle(
+                    color: Color(0xFFADB3BE),
+                    fontSize: 15,
+                  ),
                   border: InputBorder.none,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                   counterText: '',
                 ),
-                onSubmitted: (_) {
-                  if (_hasText) _handleSend();
-                },
+                onSubmitted: (_) => _handleSend(),
               ),
             ),
           ),
           const SizedBox(width: 10),
+          // Send button
           ScaleTransition(
             scale: _scaleAnim,
             child: GestureDetector(
-              onTap: _hasText ? _handleSend : null,
+              onTap: _handleSend,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 180),
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: _hasText ? AppColors.secondary : const Color(0xFFE2E8F0),
+                  color: _hasText ? AppColors.primary : const Color(0xFFE4E2DC),
                   shape: BoxShape.circle,
-                  boxShadow: _hasText
-                      ? [
-                          BoxShadow(
-                            color: AppColors.secondary.withValues(alpha: 0.35),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : [],
                 ),
                 child: Icon(
                   Icons.arrow_upward_rounded,
-                  color: _hasText ? Colors.white : const Color(0xFFCBD5E1),
+                  color: _hasText ? Colors.white : const Color(0xFFBBB8B0),
                   size: 22,
                 ),
               ),

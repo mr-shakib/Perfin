@@ -88,39 +88,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _initializeApp() async {
     // Start logo animation immediately
     _animationController.forward();
-    
-    // Wait a bit for providers to initialize
-    await Future.delayed(const Duration(milliseconds: 500));
-    
+
     if (!mounted) return;
-    
+
     final authProvider = context.read<AuthProvider>();
     final onboardingProvider = context.read<OnboardingProvider>();
-    
+
     try {
-      // Ensure providers are loaded
       await Future.wait([
         authProvider.restoreSession(),
         onboardingProvider.loadPreferences(),
       ]);
     } catch (e) {
-      // If there's a network error, continue anyway
       debugPrint('Error during initialization: $e');
     }
-    
-    // Wait for logo animation to complete
-    await Future.delayed(const Duration(milliseconds: 500));
-    
+
     if (!mounted) return;
 
-    // Check authentication and onboarding status
+    // Ensure animation has had at least 1 second of visibility
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    if (!mounted) return;
+
     final isAuthenticated = authProvider.isAuthenticated;
     final hasCompletedOnboarding = onboardingProvider.isCompleted;
 
     if (isAuthenticated) {
-      // User is authenticated, go to dashboard
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else if (!hasCompletedOnboarding) {
       // User hasn't completed onboarding, show onboarding content
@@ -128,9 +121,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         _showOnboarding = true;
       });
     } else {
-      // User completed onboarding but not logged in, go to login
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
     }
   }

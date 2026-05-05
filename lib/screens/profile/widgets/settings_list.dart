@@ -3,8 +3,6 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../providers/subscription_provider.dart';
-import '../../../providers/on_device_ai_provider.dart';
-import '../../../screens/settings/on_device_ai_settings_screen.dart';
 import '../budget_management_screen.dart';
 import '../category_management_screen.dart';
 import '../privacy_settings_screen.dart';
@@ -28,7 +26,6 @@ class SettingsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<CurrencyProvider, SubscriptionProvider>(
       builder: (context, currencyProvider, subscriptionProvider, _) {
-        final onDevice = context.watch<OnDeviceAIProvider>();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,23 +59,6 @@ class SettingsList extends StatelessWidget {
               title: 'Subscription',
               subtitle: '${subscriptionProvider.currentPlan.displayName} plan',
               onTap: () => Navigator.pushNamed(context, '/subscription'),
-            ),
-            const SizedBox(height: 20),
-            _buildSectionTitle('AI'),
-            const SizedBox(height: 10),
-            _buildSettingItem(
-              context: context,
-              icon: Icons.phone_android_outlined,
-              title: 'On-Device AI',
-              subtitle: onDevice.isModelLoaded
-                  ? 'Active — ${onDevice.loadedModelId}'
-                  : 'Download a model for offline AI',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const OnDeviceAISettingsScreen(),
-                ),
-              ),
             ),
             const SizedBox(height: 20),
             _buildSectionTitle('Finance Tools'),

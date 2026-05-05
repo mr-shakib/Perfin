@@ -94,7 +94,7 @@ class _BackendToggleSection extends StatelessWidget {
           ),
           const Divider(height: 24),
           _BackendTile(
-            title: 'On-Device (LFM2)',
+            title: 'On-Device (Qwen2.5)',
             subtitle: onDevice.isModelLoaded
                 ? 'Active — ${onDevice.loadedModelId}. Works offline.'
                 : 'Download a model below to enable.',

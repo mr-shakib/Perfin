@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../providers/budget_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/currency_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import 'widgets/financial_summary_card.dart';
 import 'widgets/budget_status_list.dart';
@@ -120,54 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: SafeArea(
                               bottom: false,
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  16,
-                                  20,
-                                  8,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              DateFormat(
-                                                'EEE, MMM d',
-                                              ).format(now),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF7B808A),
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.2,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              _getGreetingByHour(now.hour),
-                                              style: const TextStyle(
-                                                fontSize: 28,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF1A2333),
-                                                letterSpacing: -0.8,
-                                                height: 1.05,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const Spacer(),
-                                        _buildIconActionButton(
-                                          icon:
-                                              Icons.notifications_none_rounded,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                                child: _buildHeader(context, now),
                               ),
                             ),
                           ),
@@ -228,29 +183,91 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _getGreetingByHour(int hour) {
-    if (hour < 12) {
-      return 'Good morning';
-    }
-    if (hour < 17) {
-      return 'Good afternoon';
-    }
-    return 'Good evening';
-  }
+  Widget _buildHeader(BuildContext context, DateTime now) {
+    final user = context.read<AuthProvider>().user;
+    final name = user?.name ?? '';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final hour = now.hour;
+    final greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  Widget _buildIconActionButton({required IconData icon}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9E5DA), width: 1),
-      ),
-      child: IconButton(
-        onPressed: () {},
-        icon: Icon(icon),
-        color: const Color(0xFF1A2333),
-        iconSize: 22,
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Avatar
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2B3E5D), Color(0xFF3F5F8D)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: Text(
+              initial,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greeting,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF7B808A),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                name.isNotEmpty ? name.split(' ').first : 'Welcome back',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A2333),
+                  letterSpacing: -0.6,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Date pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE4E1D8), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1B2430).withValues(alpha: 0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            DateFormat('MMM d').format(now),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A2333),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -321,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildKpiCard(_KpiItem item) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -330,47 +347,47 @@ class _HomeScreenState extends State<HomeScreen> {
           BoxShadow(
             color: const Color(0xFF1B2430).withValues(alpha: 0.06),
             blurRadius: 12,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: item.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(item.icon, size: 18, color: item.color),
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(item.icon, size: 16, color: item.color),
+              ),
+              const Spacer(),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF7D8697),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF1A2333),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 10),
+          Text(
+            item.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 18,
+              color: Color(0xFF1A2333),
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            item.label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF7D8697),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -381,23 +398,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionLabel({required IconData icon, required String title}) {
     return Row(
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: const Color(0xFFEAEFF8),
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Icon(icon, size: 16, color: const Color(0xFF334B6E)),
-        ),
-        const SizedBox(width: 8),
+        Icon(icon, size: 16, color: const Color(0xFF334B6E)),
+        const SizedBox(width: 7),
         Text(
           title,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1A2333),
-            letterSpacing: -0.2,
+            letterSpacing: -0.3,
           ),
         ),
       ],

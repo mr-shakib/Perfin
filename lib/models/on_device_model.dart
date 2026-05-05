@@ -55,30 +55,30 @@ class ModelDownloadProgress {
   });
 }
 
-/// Catalogue of available Liquid AI LFM2 models.
+/// Catalogue of available on-device models.
 ///
-/// URLs point to quantised GGUF builds hosted on HuggingFace.
-/// Replace sha256 values with the real hashes from the HuggingFace file cards
-/// before shipping.
+/// Uses Qwen2.5-Instruct GGUF builds — the qwen2 architecture is supported
+/// by the llama.cpp version bundled in fllama 0.0.1.
+/// Replace sha256 values with real hashes from HuggingFace file cards before shipping.
 const List<OnDeviceModelInfo> kAvailableOnDeviceModels = [
   OnDeviceModelInfo(
-    id: 'lfm2.5-1.2b-instruct',
-    displayName: 'LFM2.5 1.2B Instruct',
+    id: 'qwen2.5-1.5b-instruct',
+    displayName: 'Qwen2.5 1.5B Instruct',
     description: 'Recommended — best quality for finance chat.',
     downloadUrl:
-        'https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-GGUF/resolve/main/LFM2.5-1.2B-Instruct-Q4_K_M.gguf',
-    fileSizeBytes: 760_000_000, // ~760 MB for Q4_K_M quant
+        'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf',
+    fileSizeBytes: 935_000_000, // ~935 MB for Q4_K_M quant
     sha256: 'REPLACE_WITH_REAL_SHA256',
     minRamMB: 3072,
     parametersBillions: 1,
   ),
   OnDeviceModelInfo(
-    id: 'lfm2-350m',
-    displayName: 'LFM2 350M Lite',
+    id: 'qwen2.5-0.5b-instruct',
+    displayName: 'Qwen2.5 0.5B Lite',
     description: 'Smallest model — works on low-end devices.',
     downloadUrl:
-        'https://huggingface.co/LiquidAI/LFM2-350M-GGUF/resolve/main/LFM2-350M-Q4_K_M.gguf',
-    fileSizeBytes: 230_000_000, // ~230 MB for Q4_K_M quant
+        'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf',
+    fileSizeBytes: 397_000_000, // ~397 MB for Q4_K_M quant
     sha256: 'REPLACE_WITH_REAL_SHA256',
     minRamMB: 2048,
     parametersBillions: 0,

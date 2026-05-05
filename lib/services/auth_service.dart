@@ -61,7 +61,7 @@ class AuthService {
     } on AuthException catch (e) {
       throw AuthenticationException(_mapAuthError(e.message));
     } catch (e) {
-      throw AuthenticationException('Authentication failed: ${e.toString()}');
+      throw AuthenticationException(_mapNetworkError(e));
     }
   }
 
@@ -130,7 +130,7 @@ class AuthService {
     } on AuthException catch (e) {
       throw AuthenticationException(_mapAuthError(e.message));
     } catch (e) {
-      throw AuthenticationException('Sign up failed: ${e.toString()}');
+      throw AuthenticationException(_mapNetworkError(e));
     }
   }
 
@@ -203,28 +203,25 @@ class AuthService {
 
   /// Load user session from local storage
   /// Returns User if a valid session exists, null otherwise
-  /// Note: This checks Supabase auth first, then falls back to local storage
+  /// Checks local storage first for fast startup; verifies with Supabase only when online.
   Future<app_models.User?> loadSession() async {
     try {
-      // First check if user is authenticated with Supabase
+      // Fast path: return local session immediately (works offline)
+      final sessionData = await _storageService.load<String>(_sessionKey);
+      if (sessionData != null) {
+        final userJson = jsonDecode(sessionData) as Map<String, dynamic>;
+        return app_models.User.fromJson(userJson);
+      }
+
+      // No local session — try Supabase (requires network)
       final currentUser = await getCurrentUser();
       if (currentUser != null) {
-        // Save to local storage for offline access
         await saveSession(currentUser);
         return currentUser;
       }
 
-      // Fall back to local storage if offline
-      final sessionData = await _storageService.load<String>(_sessionKey);
-
-      if (sessionData == null) {
-        return null;
-      }
-
-      final userJson = jsonDecode(sessionData) as Map<String, dynamic>;
-      return app_models.User.fromJson(userJson);
+      return null;
     } catch (e) {
-      // If session is corrupted or invalid, return null
       return null;
     }
   }
@@ -253,6 +250,18 @@ class AuthService {
       return 'Invalid email format';
     }
     return error;
+  }
+
+  /// Map network/socket errors to user-friendly messages
+  String _mapNetworkError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('SocketException') ||
+        msg.contains('Failed host lookup') ||
+        msg.contains('ClientException') ||
+        msg.contains('NetworkException')) {
+      return 'Unable to connect. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again.';
   }
 
   /// Validate email format

@@ -15,7 +15,7 @@ class OnDeviceAIService implements AIBackend {
   double? _contextId;
 
   @override
-  String get name => 'On-Device (LFM2)';
+  String get name => 'On-Device (Qwen2.5)';
 
   @override
   bool get isAvailable => _modelLoaded;
@@ -87,7 +87,7 @@ class OnDeviceAIService implements AIBackend {
         nPredict: 512,
         temperature: 0.7,
         emitRealtimeCompletion: true,
-        stop: ['<eos>', 'User:'],
+        stop: ['<|im_end|>', '<|endoftext|>', 'User:'],
       );
     } finally {
       await sub?.cancel();
@@ -119,7 +119,7 @@ class OnDeviceAIService implements AIBackend {
           nPredict: 512,
           temperature: 0.7,
           emitRealtimeCompletion: true,
-          stop: ['<eos>', 'User:'],
+          stop: ['<|im_end|>', '<|endoftext|>', 'User:'],
         )
         .then((_) {
           sub?.cancel();
