@@ -58,7 +58,6 @@ dependencies:
   timezone: ^0.9.4
   
   # AI
-  fllama: ^0.0.1
   http: ^1.2.0
   dio: ^5.7.0
   device_info_plus: ^10.1.0
